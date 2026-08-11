@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Angeethi — Fine Indian Dining</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --maroon:#8B1E1E;
+    --maroon-dark:#5C1010;
+    --saffron:#F28C28;
+    --saffron-light:#FFD79A;
+    --cream:#FFF4E0;
+    --cream-alt:#FBEAC9;
+    --ink:#2B2118;
+    --gold:#C9A15A;
+    --white:#FFFDF8;
+    --green:#3D6B4A;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    font-family:'Jost', sans-serif;
+    background:var(--cream);
+    color:var(--ink);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{ font-family:'Marcellus', serif; letter-spacing:.02em; }
+  a{ color:inherit; text-decoration:none; }
+  ul{ list-style:none; }
+  img{ max-width:100%; display:block; }
+  [contenteditable="true"]{ outline-offset:4px; border-radius:2px; }
+  [contenteditable="true"]:hover{ outline:1px dashed var(--gold); cursor:text; }
+  [contenteditable="true"]:focus{ outline:1.5px dashed var(--saffron); background:rgba(242,140,40,.06); }
+  .edit-badge{
+    position:fixed; bottom:18px; right:18px; z-index:999;
+    background:var(--maroon); color:var(--white); font-size:12px;
+    padding:9px 16px; border-radius:30px; box-shadow:0 6px 18px rgba(0,0,0,.25);
+    font-family:'Jost'; letter-spacing:.04em;
+  }
+
+  /* --- ember divider, the signature motif --- */
+  .ember-divider{ display:flex; align-items:center; justify-content:center; gap:14px; margin:0 auto; width:fit-content; }
+  .ember-divider .line{ height:1px; width:56px; background:linear-gradient(90deg, transparent, var(--gold)); }
+  .ember-divider .line.r{ background:linear-gradient(270deg, transparent, var(--gold)); }
+  .ember-divider .dot{ width:7px; height:7px; border-radius:50%; background:var(--saffron); box-shadow:0 0 12px 3px rgba(242,140,40,.55); }
+
+  .eyebrow{
+    display:flex; align-items:center; gap:8px; justify-content:center;
+    text-transform:uppercase; letter-spacing:.28em; font-size:12px; color:var(--maroon);
+    font-weight:500; margin-bottom:14px;
+  }
+  .eyebrow::before{ content:''; width:6px; height:6px; border-radius:50%; background:var(--saffron); box-shadow:0 0 8px 2px rgba(242,140,40,.6); }
+
+  /* ============ VIEW SWITCHER (demo control, not part of live site) ============ */
+  .view-switcher{
+    position:sticky; top:0; z-index:200; background:var(--maroon-dark);
+    display:flex; justify-content:center; gap:4px; padding:10px; flex-wrap:wrap;
+  }
+  .view-switcher button{
+    background:transparent; border:1px solid rgba(255,255,255,.25); color:var(--cream-alt);
+    padding:8px 18px; border-radius:30px; font-family:'Jost'; font-size:13px; cursor:pointer;
+    transition:.2s;
+  }
+  .view-switcher button.active{ background:var(--saffron); color:var(--maroon-dark); border-color:var(--saffron); font-weight:600; }
+  .view-panel{ display:none; }
+  .view-panel.active{ display:block; }
+
+  /* ============ NAVBAR ============ */
+  .navbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:18px 5%; background:var(--cream); position:sticky; top:41px; z-index:150;
+    border-bottom:1px solid rgba(139,30,30,.12);
+  }
+  .logo{ font-size:26px; color:var(--maroon); }
+  .logo span{ color:var(--saffron); }
+  .nav-links{ display:flex; gap:34px; font-size:14.5px; letter-spacing:.03em; }
+  .nav-links a{ position:relative; padding-bottom:4px; }
+  .nav-links a::after{ content:''; position:absolute; left:0; bottom:0; width:0; height:1.5px; background:var(--saffron); transition:.25s; }
+  .nav-links a:hover::after{ width:100%; }
+  .nav-right{ display:flex; align-items:center; gap:18px; }
+  .btn{
+    display:inline-block; padding:12px 26px; border-radius:2px; font-size:13.5px;
+    letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid transparent;
+    transition:.25s;
+  }
+  .btn-fill{ background:var(--saffron); color:var(--maroon-dark); font-weight:600; }
+  .btn-fill:hover{ background:#e07d1c; box-shadow:0 8px 20px rgba(242,140,40,.35); }
+  .btn-outline{ border-color:var(--cream); color:var(--cream); }
+  .btn-outline:hover{ background:rgba(255,244,224,.12); }
+  .btn-maroon-outline{ border-color:var(--maroon); color:var(--maroon); }
+  .btn-maroon-outline:hover{ background:var(--maroon); color:var(--white); }
+  .btn-small{ padding:9px 18px; font-size:12px; }
+  .menu-toggle{ display:none; font-size:26px; background:none; border:none; color:var(--maroon); cursor:pointer; }
+
+  /* ============ HERO ============ */
+  .hero{
+    position:relative; min-height:88vh; display:flex; align-items:center; justify-content:center;
+    text-align:center; overflow:hidden;
+  }
+  .hero-bg{
+    position:absolute; inset:0; background-size:cover; background-position:center;
+    background-image:url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?q=80&w=1800&auto=format&fit=crop');
+  }
+  .hero-bg::after{
+    content:''; position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(43,33,24,.55) 0%, rgba(92,16,16,.72) 60%, rgba(43,33,24,.85) 100%);
+  }
+  .hero-content{ position:relative; z-index:2; color:var(--cream); max-width:760px; padding:0 24px; }
+  .hero-eyebrow{ letter-spacing:.35em; font-size:12px; text-transform:uppercase; color:var(--saffron-light); margin-bottom:20px; }
+  .hero h1{ font-size:clamp(46px,8vw,84px); line-height:1.02; margin-bottom:18px; }
+  .hero p.tagline{ font-size:18px; color:var(--cream-alt); max-width:520px; margin:0 auto 38px; font-weight:300; }
+  .hero-buttons{ display:flex; gap:18px; justify-content:center; flex-wrap:wrap; }
+
+  /* ============ QUICK INFO BAR ============ */
+  .info-bar{
+    position:relative; z-index:3; max-width:1080px; margin:-64px auto 0; background:var(--white);
+    display:grid; grid-template-columns:repeat(4,1fr); box-shadow:0 20px 50px rgba(43,33,24,.18);
+    border-radius:4px; overflow:hidden;
+  }
+  .info-item{
+    padding:30px 22px; text-align:center; border-right:1px solid rgba(201,161,90,.28);
+  }
+  .info-item:last-child{ border-right:none; }
+  .info-item .icon{ font-size:22px; margin-bottom:10px; color:var(--saffron); }
+  .info-item h4{ font-family:'Jost'; font-size:12px; text-transform:uppercase; letter-spacing:.14em; color:var(--maroon); margin-bottom:8px; font-weight:600; }
+  .info-item p{ font-size:14px; color:var(--ink); }
+  .info-item a.link-btn{ font-size:13px; color:var(--maroon); text-decoration:underline; text-underline-offset:3px; }
+
+  section{ padding:110px 6% ; }
+  .section-inner{ max-width:1180px; margin:0 auto; }
+  .center-head{ text-align:center; max-width:640px; margin:0 auto 60px; }
+  .center-head h2{ font-size:clamp(32px,4vw,48px); margin-top:8px; }
+
+  /* ============ ABOUT ============ */
+  .about-grid{ display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center; }
+  .about-grid img{ border-radius:4px; box-shadow:0 24px 50px rgba(43,33,24,.2); }
+  .about-text h2{ font-size:38px; margin-bottom:22px; }
+  .about-text p{ color:#4a3c2c; margin-bottom:16px; }
+  .about-stats{ display:flex; gap:40px; margin-top:32px; }
+  .about-stats div h3{ color:var(--maroon); font-size:30px; }
+  .about-stats div span{ font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:#7a6a55; }
+
+  /* ============ MENU PREVIEW ============ */
+  .menu-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:34px; }
+  .menu-card{ background:var(--white); border-radius:4px; overflow:hidden; box-shadow:0 12px 30px rgba(43,33,24,.1); transition:.3s; }
+  .menu-card:hover{ transform:translateY(-6px); box-shadow:0 24px 40px rgba(139,30,30,.18); }
+  .menu-card .img{ height:220px; background-size:cover; background-position:center; position:relative; }
+  .menu-card .tag{ position:absolute; top:14px; left:14px; background:var(--saffron); color:var(--maroon-dark); font-size:11px; padding:5px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .menu-card .body{ padding:22px 22px 26px; }
+  .menu-card h3{ font-size:20px; margin-bottom:6px; color:var(--maroon); }
+  .menu-card p{ font-size:13.5px; color:#5c4d3c; margin-bottom:14px; }
+  .menu-card .price-row{ display:flex; justify-content:space-between; align-items:center; font-size:14px; }
+  .menu-card .price{ color:var(--saffron); font-weight:600; font-family:'Marcellus'; font-size:17px; }
+  .menu-cta{ text-align:center; margin-top:50px; }
+
+  /* ============ CONTACT / MAP ============ */
+  .contact-wrap{ display:grid; grid-template-columns:1fr 1fr; gap:0; background:var(--maroon); border-radius:6px; overflow:hidden; }
+  .contact-info{ padding:60px; color:var(--cream); }
+  .contact-info h2{ font-size:34px; margin-bottom:20px; }
+  .contact-info p{ color:var(--cream-alt); margin-bottom:26px; font-weight:300; }
+  .contact-row{ display:flex; gap:14px; margin-bottom:18px; font-size:14.5px; }
+  .contact-row .k{ color:var(--saffron-light); min-width:110px; text-transform:uppercase; font-size:11px; letter-spacing:.08em; padding-top:3px; }
+  .map-embed{ min-height:100%; background:#3a2a1f; position:relative; }
+  .map-embed iframe{ width:100%; height:100%; min-height:420px; border:0; filter:sepia(.15) saturate(1.1); }
+
+  /* ============ FOOTER ============ */
+  footer{ background:var(--maroon-dark); color:var(--cream-alt); padding:70px 6% 30px; }
+  .footer-grid{ display:grid; grid-template-columns:1.4fr 1fr 1fr 1fr; gap:50px; max-width:1180px; margin:0 auto 50px; }
+  .footer-grid h4{ color:var(--saffron); font-size:13px; text-transform:uppercase; letter-spacing:.12em; margin-bottom:18px; }
+  .footer-grid p, .footer-grid li{ font-size:13.5px; color:#d8c6ae; margin-bottom:10px; }
+  .footer-logo{ font-family:'Marcellus'; font-size:24px; color:var(--cream); margin-bottom:14px; }
+  .socials{ display:flex; gap:12px; margin-top:10px; }
+  .socials a{ width:36px; height:36px; border:1px solid rgba(255,244,224,.3); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; transition:.2s; }
+  .socials a:hover{ background:var(--saffron); color:var(--maroon-dark); border-color:var(--saffron); }
+  .footer-bottom{ text-align:center; border-top:1px solid rgba(255,244,224,.15); padding-top:24px; font-size:12.5px; color:#c5b299; max-width:1180px; margin:0 auto; }
+
+  /* ============ ORDER FORM (customer) ============ */
+  .order-wrap{ max-width:640px; margin:70px auto; background:var(--white); padding:50px; border-radius:6px; box-shadow:0 20px 50px rgba(43,33,24,.15); }
+  .order-wrap h2{ text-align:center; margin-bottom:6px; font-size:32px; color:var(--maroon); }
+  .order-wrap .sub{ text-align:center; color:#7a6a55; font-size:13.5px; margin-bottom:34px; }
+  .field{ margin-bottom:22px; }
+  .field label{ display:block; font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); margin-bottom:8px; font-weight:600; }
+  .field input, .field select{
+    width:100%; padding:13px 14px; border:1px solid #e3d3b8; border-radius:3px; font-family:'Jost'; font-size:14.5px; background:var(--cream);
+  }
+  .field input:focus, .field select:focus{ outline:none; border-color:var(--saffron); }
+  .order-type-row{ display:flex; gap:12px; }
+  .order-type{ flex:1; text-align:center; padding:14px 8px; border:1px solid #e3d3b8; border-radius:3px; cursor:pointer; font-size:13px; transition:.2s; }
+  .order-type.selected{ background:var(--maroon); color:var(--white); border-color:var(--maroon); }
+  .table-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:8px; }
+  .table-num{ padding:10px 0; text-align:center; border:1px solid #e3d3b8; border-radius:3px; cursor:pointer; font-size:13px; }
+  .table-num.selected{ background:var(--saffron); border-color:var(--saffron); color:var(--maroon-dark); font-weight:600; }
+  .table-section{ display:none; }
+  .table-section.show{ display:block; }
+  .order-submit{ width:100%; margin-top:10px; text-align:center; }
+
+  /* ============ DASHBOARD ============ */
+  .dash-wrap{ max-width:1180px; margin:0 auto; padding:50px 6%; }
+  .dash-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:34px; flex-wrap:wrap; gap:14px; }
+  .dash-head h2{ font-size:30px; color:var(--maroon); }
+  .stat-grid{ display:grid; grid-template-columns:repeat(6,1fr); gap:16px; margin-bottom:44px; }
+  .stat-card{ background:var(--white); border-radius:6px; padding:22px 16px; text-align:center; box-shadow:0 8px 22px rgba(43,33,24,.08); border-top:3px solid var(--saffron); }
+  .stat-card.pending{ border-top-color:#C9412D; }
+  .stat-card.complete{ border-top-color:var(--green); }
+  .stat-card h3{ font-size:30px; color:var(--maroon); }
+  .stat-card span{ font-size:11.5px; text-transform:uppercase; letter-spacing:.06em; color:#7a6a55; }
+  .order-table{ width:100%; border-collapse:collapse; background:var(--white); border-radius:6px; overflow:hidden; box-shadow:0 8px 22px rgba(43,33,24,.08); }
+  .order-table th, .order-table td{ padding:15px 18px; text-align:left; font-size:13.5px; border-bottom:1px solid #f0e6d2; }
+  .order-table th{ background:var(--maroon); color:var(--cream); text-transform:uppercase; font-size:11px; letter-spacing:.06em; }
+  .status-pill{ padding:5px 12px; border-radius:20px; font-size:11.5px; font-weight:600; text-transform:uppercase; }
+  .status-pill.pending{ background:#FCE3DC; color:#C9412D; }
+  .status-pill.preparing{ background:#FFE9C7; color:#B4680B; }
+  .status-pill.complete{ background:#DEEEDF; color:var(--green); }
+
+  /* ============ REVENUE ============ */
+  .rev-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-bottom:44px; }
+  .rev-card{ background:var(--maroon); color:var(--cream); padding:30px 26px; border-radius:6px; }
+  .rev-card.alt{ background:var(--white); color:var(--ink); border:1px solid #e3d3b8; }
+  .rev-card span{ font-size:11.5px; text-transform:uppercase; letter-spacing:.08em; opacity:.75; }
+  .rev-card h3{ font-size:32px; margin-top:8px; font-family:'Marcellus'; }
+
+  @media(max-width:900px){
+    .nav-links{ display:none; }
+    .menu-toggle{ display:block; }
+    .info-bar{ grid-template-columns:repeat(2,1fr); margin-top:20px; }
+    .info-item:nth-child(2){ border-right:none; }
+    .about-grid, .menu-grid, .contact-wrap, .stat-grid, .rev-grid, .footer-grid{ grid-template-columns:1fr 1fr; }
+    .stat-grid{ grid-template-columns:repeat(3,1fr); }
+    .footer-grid{ grid-template-columns:1fr 1fr; }
+    section{ padding:70px 6%; }
+  }
+  @media(max-width:560px){
+    .menu-grid, .stat-grid, .rev-grid, .about-grid, .contact-wrap, .footer-grid{ grid-template-columns:1fr; }
+    .stat-grid{ grid-template-columns:1fr 1fr; }
+    .table-grid{ grid-template-columns:repeat(4,1fr); }
+    .contact-info{ padding:40px 30px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="edit-badge">✎ Click any text to edit it directly</div>
+
+<!-- DEMO VIEW SWITCHER — remove this bar once split into real pages/routes -->
+<div class="view-switcher" id="viewSwitcher">
+  <button class="active" data-view="website">Website</button>
+  <button data-view="order">Place Order</button>
+  <button data-view="dashboard" id="btnDashboard" style="display:none;">Order Dashboard</button>
+  <button data-view="revenue" id="btnRevenue" style="display:none;">Revenue</button>
+  <button data-view="login" id="btnLogin">Staff Login</button>
+  <button id="btnLogout" style="display:none; background:transparent; border:1px solid rgba(255,255,255,.25); color:#FFD79A;">Logout</button>
+  <span id="authBadge" style="display:none; align-self:center; margin-left:6px; font-size:12px; color:#FFD79A; padding:8px 4px;"></span>
+</div>
+
+<!-- ================= WEBSITE VIEW ================= -->
+<div class="view-panel active" id="view-website">
+
+  <nav class="navbar">
+    <div class="logo" contenteditable="true">ANGEETHI<span>.</span></div>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#menu">Menu</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <div class="nav-right">
+      <button class="btn btn-maroon-outline btn-small" onclick="switchView('order')">My Orders</button>
+      <button class="menu-toggle">☰</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="home" style="padding:0;">
+    <div class="hero">
+      <div class="hero-bg"></div>
+      <div class="hero-content">
+        <p class="hero-eyebrow" contenteditable="true">Fine Indian Dining Since 1998</p>
+        <h1 contenteditable="true">Angeethi</h1>
+        <p class="tagline" contenteditable="true">Where fire, spice and heritage meet on one plate — an ode to the tandoor, plated for the modern table.</p>
+        <div class="hero-buttons">
+          <a class="btn btn-fill" href="#menu">View Menu</a>
+          <a class="btn btn-outline" onclick="switchView('order')" href="javascript:void(0)">Order Now</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUICK INFO BAR -->
+    <div class="info-bar">
+      <div class="info-item">
+        <div class="icon">⏱</div>
+        <h4>Opening Hours</h4>
+        <p contenteditable="true">12:00 PM – 3:30 PM<br>7:00 PM – 11:30 PM</p>
+      </div>
+      <div class="info-item">
+        <div class="icon">📍</div>
+        <h4>Location</h4>
+        <p contenteditable="true">12 Residency Road, Bengaluru</p>
+        <a class="link-btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
+      </div>
+      <div class="info-item">
+        <div class="icon">📞</div>
+        <h4>Reservations</h4>
+        <p><a href="tel:+919876543210" contenteditable="true">+91 98765 43210</a></p>
+      </div>
+      <div class="info-item">
+        <div class="icon">🍽</div>
+        <h4>Closed On</h4>
+        <p contenteditable="true">Open all week</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="section-inner about-grid">
+      <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?q=80&w=1000&auto=format&fit=crop" alt="Chef plating a signature dish">
+      <div class="about-text">
+        <p class="eyebrow" style="justify-content:flex-start;">Our Story</p>
+        <h2 contenteditable="true">A hearth, not just a kitchen</h2>
+        <p contenteditable="true">Angeethi began as a single charcoal hearth in a family courtyard — the word itself means the warm iron pot that keeps a home fed through winter. Three generations later, that same fire still anchors every dish that leaves our kitchen.</p>
+        <p contenteditable="true">Every recipe is slow, deliberate, and built on spice blends ground fresh each morning. Nothing here is rushed — not the marinade, not the service, not the evening.</p>
+        <div class="about-stats">
+          <div><h3 contenteditable="true">26</h3><span>Years of Craft</span></div>
+          <div><h3 contenteditable="true">40+</h3><span>Signature Dishes</span></div>
+          <div><h3 contenteditable="true">4.8★</h3><span>Guest Rating</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MENU PREVIEW -->
+  <section id="menu" style="background:var(--cream-alt);">
+    <div class="section-inner">
+      <div class="center-head">
+        <p class="eyebrow">The Table</p>
+        <h2 contenteditable="true">Signature Dishes</h2>
+      </div>
+      <div class="menu-grid">
+        <div class="menu-card">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=800&auto=format&fit=crop');">
+            <span class="tag">Bestseller</span>
+          </div>
+          <div class="body">
+            <h3 contenteditable="true">Angeethi Tandoori Raan</h3>
+            <p contenteditable="true">Slow-marinated leg of lamb, 12-hour charcoal roast, saffron jus.</p>
+            <div class="price-row"><span>Half / Full</span><span class="price" contenteditable="true">₹950 / ₹1,650</span></div>
+          </div>
+        </div>
+        <div class="menu-card">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1567188040759-fb8a883dc6d3?q=80&w=800&auto=format&fit=crop');">
+            <span class="tag">Chef's Pick</span>
+          </div>
+          <div class="body">
+            <h3 contenteditable="true">Dum Gosht Biryani</h3>
+            <p contenteditable="true">Aged basmati, hand-pounded spice, sealed and slow-cooked on dum.</p>
+            <div class="price-row"><span>Serves 1</span><span class="price" contenteditable="true">₹620</span></div>
+          </div>
+        </div>
+        <div class="menu-card">
+          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=800&auto=format&fit=crop');">
+            <span class="tag">Vegetarian</span>
+          </div>
+          <div class="body">
+            <h3 contenteditable="true">Paneer Angara</h3>
+            <p contenteditable="true">Charcoal-smoked cottage cheese, Kashmiri chilli, mustard tempering.</p>
+            <div class="price-row"><span>Full</span><span class="price" contenteditable="true">₹480</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="menu-cta"><a class="btn btn-maroon-outline" href="#contact">See Full Menu</a></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="section-inner">
+      <div class="contact-wrap">
+        <div class="contact-info">
+          <p class="eyebrow" style="justify-content:flex-start;">Visit Us</p>
+          <h2 contenteditable="true">Reserve Your Table</h2>
+          <p contenteditable="true">Walk-ins welcome, though the courtyard tables go quickly on weekends. Call ahead or order in for the same fire, delivered.</p>
+          <div class="contact-row"><span class="k">Address</span><span contenteditable="true">12 Residency Road, Bengaluru, Karnataka 560025</span></div>
+          <div class="contact-row"><span class="k">Phone</span><span contenteditable="true">+91 98765 43210</span></div>
+          <div class="contact-row"><span class="k">WhatsApp</span><span contenteditable="true">+91 98765 43211</span></div>
+          <div class="contact-row"><span class="k">Email</span><span contenteditable="true">reservations@angeethi.in</span></div>
+          <a class="btn btn-fill" style="margin-top:10px;" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
+        </div>
+        <div class="map-embed">
+          <iframe loading="lazy" src="https://www.google.com/maps?q=12.9716,77.5946&output=embed"></iframe>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <div class="footer-logo" contenteditable="true">Angeethi</div>
+        <p contenteditable="true">Fine Indian dining rooted in fire, spice and three generations of craft.</p>
+        <div class="socials">
+          <a href="#" aria-label="Instagram">IG</a>
+          <a href="#" aria-label="Facebook">FB</a>
+          <a href="#" aria-label="YouTube">YT</a>
+          <a href="#" aria-label="Google">G</a>
+        </div>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul><li><a href="#home">Home</a></li><li><a href="#menu">Menu</a></li><li><a href="#about">About</a></li><li><a href="#contact">Contact</a></li></ul>
+      </div>
+      <div>
+        <h4>Hours</h4>
+        <p contenteditable="true">Lunch 12:00 – 3:30 PM</p>
+        <p contenteditable="true">Dinner 7:00 – 11:30 PM</p>
+        <p contenteditable="true">Open all week</p>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <p contenteditable="true">+91 98765 43210</p>
+        <p contenteditable="true">reservations@angeethi.in</p>
+        <p contenteditable="true">12 Residency Road, Bengaluru</p>
+      </div>
+    </div>
+    <div class="footer-bottom">© 2026 Angeethi Restaurant. All rights reserved. · Crafted with fire and patience.</div>
+  </footer>
+
+</div>
+
+<!-- ================= ORDER VIEW (customer) ================= -->
+<div class="view-panel" id="view-order">
+  <div class="order-wrap">
+    <h2>Start Your Order</h2>
+    <p class="sub">Tell us a little about you — takes 20 seconds.</p>
+
+    <div class="field">
+      <label>Full Name</label>
+      <input type="text" id="ordName" placeholder="e.g. Rohan Mehta">
+    </div>
+    <div class="field">
+      <label>Mobile Number</label>
+      <input type="tel" id="ordMobile" placeholder="e.g. 98765 43210">
+    </div>
+    <div class="field">
+      <label>Order Type</label>
+      <div class="order-type-row" id="orderTypeRow">
+        <div class="order-type selected" data-type="Dine-In" onclick="selectOrderType(this,true)">Dine-In</div>
+        <div class="order-type" data-type="Takeaway" onclick="selectOrderType(this,false)">Takeaway</div>
+        <div class="order-type" data-type="Home Delivery" onclick="selectOrderType(this,false)">Home Delivery</div>
+      </div>
+    </div>
+    <div class="field table-section show" id="tableSection">
+      <label>Choose Your Table</label>
+      <div class="table-grid" id="tableGrid"></div>
+    </div>
+    <div class="field">
+      <label>Order Notes / Items (optional)</label>
+      <input type="text" id="ordNotes" placeholder="e.g. 1 Tandoori Raan, 2 Naan">
+    </div>
+    <div class="field">
+      <label>Estimated Amount (₹)</label>
+      <input type="number" id="ordAmount" placeholder="e.g. 1200">
+    </div>
+    <div id="ordMsg" style="display:none; margin-bottom:16px; font-size:13px; color:var(--maroon); text-align:center;"></div>
+    <div class="order-submit">
+      <button class="btn btn-fill" style="width:100%;" id="ordSubmitBtn" onclick="submitOrder()">Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= ORDER DASHBOARD (staff) ================= -->
+<div class="view-panel" id="view-dashboard">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2>Today's Orders</h2>
+      <span style="font-size:13px;color:#7a6a55;">Sunday, 09 Aug 2026</span>
+    </div>
+    <div class="stat-grid" id="dashStats">
+      <div class="stat-card"><h3 id="statTotal">0</h3><span>Total Orders</span></div>
+      <div class="stat-card"><h3 id="statDine">0</h3><span>Dine-In</span></div>
+      <div class="stat-card"><h3 id="statTakeaway">0</h3><span>Takeaway</span></div>
+      <div class="stat-card"><h3 id="statDelivery">0</h3><span>Parcel / Delivery</span></div>
+      <div class="stat-card complete"><h3 id="statComplete">0</h3><span>Completed</span></div>
+      <div class="stat-card pending"><h3 id="statPending">0</h3><span>Pending</span></div>
+    </div>
+    <table class="order-table">
+      <thead><tr><th>Order ID</th><th>Guest</th><th>Type</th><th>Table</th><th>Amount</th><th>Status (click to update)</th></tr></thead>
+      <tbody id="dashTableBody">
+        <tr><td colspan="6" style="text-align:center;color:#9a8a72;">No orders yet — place one from "Place Order".</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= REVENUE ================= -->
+<div class="view-panel" id="view-revenue">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2>Revenue Overview</h2>
+      <span style="font-size:13px;color:#7a6a55;">Today · Sunday, 09 Aug 2026</span>
+    </div>
+    <div class="rev-grid">
+      <div class="rev-card"><span>Total Revenue</span><h3 id="revTotal">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Completed</span><h3 style="color:var(--green);" id="revComplete">₹0</h3></div>
+      <div class="rev-card alt"><span>Payment Pending</span><h3 style="color:#C9412D;" id="revPending">₹0</h3></div>
+    </div>
+    <table class="order-table">
+      <thead><tr><th>Order ID</th><th>Guest</th><th>Method</th><th>Amount</th><th>Payment Status (click to update)</th></tr></thead>
+      <tbody id="revTableBody">
+        <tr><td colspan="5" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ================= STAFF LOGIN ================= -->
+<div class="view-panel" id="view-login">
+  <div class="order-wrap" style="max-width:440px;">
+    <h2>Staff Login</h2>
+    <p class="sub">Owner, Manager and Staff sign in here. Guests don't need an account.</p>
+
+    <div id="loginForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@angeethi.in">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <div id="loginMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+      <div class="order-submit">
+        <button class="btn btn-fill" style="width:100%;" id="loginBtn" onclick="doLogin()">Sign In</button>
+      </div>
+    </div>
+
+    <div id="loggedInBox" style="display:none; text-align:center;">
+      <p style="margin-bottom:6px;">Signed in as</p>
+      <p style="font-weight:600; color:var(--maroon); margin-bottom:4px;" id="loggedInEmail"></p>
+      <p style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--saffron); margin-bottom:26px;" id="loggedInRole"></p>
+      <button class="btn btn-maroon-outline" style="width:100%;" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const ROLE_ACCESS = {
+    superadmin: ['website','order','dashboard','revenue','login'],
+    owner:      ['website','order','dashboard','revenue','login'],
+    manager:    ['website','order','dashboard','login'],
+    staff:      ['website','order','dashboard','login']
+  };
+  window.currentRole = null; // null = guest, not logged in
+
+  function allowedViews(){
+    return window.currentRole ? ROLE_ACCESS[window.currentRole] : ['website','order','login'];
+  }
+
+  function switchView(name){
+    if(!allowedViews().includes(name)){
+      switchView('login');
+      const m = document.getElementById('loginMsg');
+      if(m){ m.style.display='block'; m.style.color='#C9412D'; m.textContent = 'Please sign in with a staff account to view this page.'; }
+      return;
+    }
+    document.querySelectorAll('.view-panel').forEach(p=>p.classList.remove('active'));
+    document.getElementById('view-'+name).classList.add('active');
+    document.querySelectorAll('.view-switcher button[data-view]').forEach(b=>{
+      b.classList.toggle('active', b.dataset.view===name);
+    });
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  document.querySelectorAll('.view-switcher button[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=>switchView(btn.dataset.view));
+  });
+
+  let selectedOrderType = 'Dine-In';
+  let selectedTable = 'T-01';
+
+  function selectOrderType(el, showTable){
+    document.querySelectorAll('.order-type').forEach(t=>t.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedOrderType = el.dataset.type;
+    document.getElementById('tableSection').classList.toggle('show', showTable);
+    if(!showTable) selectedTable = null;
+  }
+
+  // generate table numbers 1-24
+  const tableGrid = document.getElementById('tableGrid');
+  for(let i=1;i<=24;i++){
+    const d = document.createElement('div');
+    d.className='table-num';
+    if(i===1) d.classList.add('selected');
+    d.textContent='T-'+String(i).padStart(2,'0');
+    d.onclick=()=>{
+      document.querySelectorAll('.table-num').forEach(t=>t.classList.remove('selected'));
+      d.classList.add('selected');
+      selectedTable = d.textContent;
+    };
+    tableGrid.appendChild(d);
+  }
+</script>
+
+<!-- ================= FIREBASE (Firestore) ================= -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
+  import {
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  import {
+    getFirestore, doc, getDoc, setDoc, collection, addDoc,
+    onSnapshot, serverTimestamp, query, orderBy, updateDoc
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBsx_5DZi5Rm6QWoxQTNUah3PVs4pVNWAs",
+    authDomain: "angeethi-1e6be.firebaseapp.com",
+    projectId: "angeethi-1e6be",
+    storageBucket: "angeethi-1e6be.firebasestorage.app",
+    messagingSenderId: "1016495296053",
+    appId: "1:1016495296053:web:d5d404c3c457aa60e92b7c",
+    measurementId: "G-C9N7H3P1V1"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+  isSupported().then(ok => { if(ok) getAnalytics(app); }).catch(()=>{});
+
+  /* ---------- 0. AUTH: login, logout, role lookup ---------- */
+  window.doLogin = async function(){
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMsg');
+    const btn = document.getElementById('loginBtn');
+    if(!email || !password){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Enter both email and password.';
+      return;
+    }
+    btn.textContent = 'Signing in...';
+    try{
+      await signInWithEmailAndPassword(auth, email, password);
+      msg.style.display='none';
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Sign in failed — check email/password.';
+    }
+    btn.textContent = 'Sign In';
+  };
+
+  window.doLogout = async function(){
+    await signOut(auth);
+    switchView('website');
+  };
+
+  function updateAuthUI(role, email){
+    const btnDash = document.getElementById('btnDashboard');
+    const btnRev = document.getElementById('btnRevenue');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnLogout = document.getElementById('btnLogout');
+    const badge = document.getElementById('authBadge');
+    const loginForm = document.getElementById('loginForm');
+    const loggedInBox = document.getElementById('loggedInBox');
+
+    const access = role ? (
+      role==='staff' || role==='manager' ? ['website','order','dashboard','login'] : ['website','order','dashboard','revenue','login']
+    ) : ['website','order','login'];
+
+    btnDash.style.display = access.includes('dashboard') ? 'inline-block' : 'none';
+    btnRev.style.display = access.includes('revenue') ? 'inline-block' : 'none';
+
+    if(role){
+      btnLogin.style.display = 'none';
+      btnLogout.style.display = 'inline-block';
+      badge.style.display = 'inline-block';
+      badge.textContent = role.toUpperCase();
+      loginForm.style.display = 'none';
+      loggedInBox.style.display = 'block';
+      document.getElementById('loggedInEmail').textContent = email;
+      document.getElementById('loggedInRole').textContent = role;
+    } else {
+      btnLogin.style.display = 'inline-block';
+      btnLogout.style.display = 'none';
+      badge.style.display = 'none';
+      loginForm.style.display = 'block';
+      loggedInBox.style.display = 'none';
+    }
+  }
+
+  onAuthStateChanged(auth, async (user) => {
+    if(user){
+      try{
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const role = snap.exists() ? (snap.data().role || null) : null;
+        window.currentRole = role;
+        updateAuthUI(role, user.email);
+        if(!role){
+          const msg = document.getElementById('loginMsg');
+          msg.style.display='block'; msg.style.color='#C9412D';
+          msg.textContent = 'Signed in, but no role is set for this account yet. Ask Super Admin to add one in Firestore → users → your UID → role.';
+        }
+      }catch(e){
+        window.currentRole = null;
+        updateAuthUI(null, null);
+      }
+    } else {
+      window.currentRole = null;
+      updateAuthUI(null, null);
+      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active')){
+        switchView('website');
+      }
+    }
+  });
+
+  /* ---------- 1. LIVE-EDITABLE SITE CONTENT ---------- */
+  const CONTENT_DOC = doc(db, "content", "site");
+  const editableEls = Array.from(document.querySelectorAll('[contenteditable="true"]'));
+  editableEls.forEach((el, i) => { el.dataset.ceKey = 'field_' + i; });
+
+  async function loadContent(){
+    try{
+      const snap = await getDoc(CONTENT_DOC);
+      if(snap.exists()){
+        const data = snap.data();
+        editableEls.forEach(el => {
+          const key = el.dataset.ceKey;
+          if(data[key] !== undefined) el.innerHTML = data[key];
+        });
+      }
+    }catch(e){ console.warn('Could not load saved content (Firestore may need setup):', e.message); }
+  }
+  loadContent();
+
+  editableEls.forEach(el => {
+    el.addEventListener('blur', async () => {
+      try{
+        await setDoc(CONTENT_DOC, { [el.dataset.ceKey]: el.innerHTML }, { merge: true });
+      }catch(e){ console.warn('Save failed:', e.message); }
+    });
+  });
+
+  /* ---------- 2. ORDERS: place order, dashboard, revenue ---------- */
+  const ordersCol = collection(db, "orders");
+
+  window.submitOrder = async function(){
+    const name = document.getElementById('ordName').value.trim();
+    const mobile = document.getElementById('ordMobile').value.trim();
+    const notes = document.getElementById('ordNotes').value.trim();
+    const amount = parseFloat(document.getElementById('ordAmount').value) || 0;
+    const msg = document.getElementById('ordMsg');
+
+    if(!name || !mobile){
+      msg.style.display='block';
+      msg.textContent = 'Please enter your name and mobile number.';
+      return;
+    }
+    const btn = document.getElementById('ordSubmitBtn');
+    btn.textContent = 'Placing order...';
+    try{
+      await addDoc(ordersCol, {
+        name, mobile, notes,
+        orderType: selectedOrderType,
+        table: selectedOrderType === 'Dine-In' ? selectedTable : '—',
+        amount,
+        status: 'pending',
+        paymentStatus: 'pending',
+        paymentMethod: 'UPI',
+        createdAt: serverTimestamp()
+      });
+      msg.style.display='block';
+      msg.style.color = 'var(--green)';
+      msg.textContent = 'Order placed! Our kitchen has been notified.';
+      document.getElementById('ordName').value='';
+      document.getElementById('ordMobile').value='';
+      document.getElementById('ordNotes').value='';
+      document.getElementById('ordAmount').value='';
+      btn.textContent = 'Place Order';
+      setTimeout(()=>switchView('website'), 1200);
+    }catch(e){
+      msg.style.display='block';
+      msg.style.color = '#C9412D';
+      msg.textContent = 'Could not place order — Firestore may not be enabled yet on this project.';
+      btn.textContent = 'Place Order';
+      console.warn(e);
+    }
+  };
+
+  const STATUS_CYCLE = ['pending','preparing','complete'];
+  window.cycleOrderStatus = async function(id, current){
+    const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current)+1) % STATUS_CYCLE.length];
+    try{ await updateDoc(doc(db,"orders", id), { status: next }); }catch(e){ console.warn(e); }
+  };
+  window.cyclePaymentStatus = async function(id, current){
+    const next = current === 'pending' ? 'complete' : 'pending';
+    try{ await updateDoc(doc(db,"orders", id), { paymentStatus: next }); }catch(e){ console.warn(e); }
+  };
+
+  const typeLabel = t => t === 'Home Delivery' ? 'Parcel' : t;
+
+  onSnapshot(query(ordersCol, orderBy('createdAt','desc')), snap => {
+    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+    // ---- dashboard stats ----
+    const total = orders.length;
+    const dine = orders.filter(o=>o.orderType==='Dine-In').length;
+    const takeaway = orders.filter(o=>o.orderType==='Takeaway').length;
+    const delivery = orders.filter(o=>o.orderType==='Home Delivery').length;
+    const completed = orders.filter(o=>o.status==='complete').length;
+    const pending = orders.filter(o=>o.status!=='complete').length;
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statDine').textContent = dine;
+    document.getElementById('statTakeaway').textContent = takeaway;
+    document.getElementById('statDelivery').textContent = delivery;
+    document.getElementById('statComplete').textContent = completed;
+    document.getElementById('statPending').textContent = pending;
+
+    // ---- dashboard table ----
+    const dashBody = document.getElementById('dashTableBody');
+    dashBody.innerHTML = orders.length ? orders.map(o => `
+      <tr>
+        <td>#${o.id.slice(0,6).toUpperCase()}</td>
+        <td>${o.name}</td>
+        <td>${typeLabel(o.orderType)}</td>
+        <td>${o.table || '—'}</td>
+        <td>₹${(o.amount||0).toLocaleString('en-IN')}</td>
+        <td><span class="status-pill ${o.status==='complete'?'complete':o.status==='preparing'?'preparing':'pending'}" style="cursor:pointer" onclick="cycleOrderStatus('${o.id}','${o.status}')">${o.status}</span></td>
+      </tr>`).join('') : '<tr><td colspan="6" style="text-align:center;color:#9a8a72;">No orders yet — place one from "Place Order".</td></tr>';
+
+    // ---- revenue ----
+    const totalRev = orders.reduce((s,o)=>s+(o.amount||0),0);
+    const completeRev = orders.filter(o=>o.paymentStatus==='complete').reduce((s,o)=>s+(o.amount||0),0);
+    const pendingRev = orders.filter(o=>o.paymentStatus!=='complete').reduce((s,o)=>s+(o.amount||0),0);
+    document.getElementById('revTotal').textContent = '₹'+totalRev.toLocaleString('en-IN');
+    document.getElementById('revComplete').textContent = '₹'+completeRev.toLocaleString('en-IN');
+    document.getElementById('revPending').textContent = '₹'+pendingRev.toLocaleString('en-IN');
+
+    const revBody = document.getElementById('revTableBody');
+    revBody.innerHTML = orders.length ? orders.map(o => `
+      <tr>
+        <td>#${o.id.slice(0,6).toUpperCase()}</td>
+        <td>${o.name}</td>
+        <td>${o.paymentMethod||'UPI'}</td>
+        <td>₹${(o.amount||0).toLocaleString('en-IN')}</td>
+        <td><span class="status-pill ${o.paymentStatus==='complete'?'complete':'pending'}" style="cursor:pointer" onclick="cyclePaymentStatus('${o.id}','${o.paymentStatus}')">${o.paymentStatus}</span></td>
+      </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>';
+  }, err => console.warn('Orders listener error (check Firestore rules):', err.message));
+</script>
+
+</body>
+</html>
