@@ -35,6 +35,7 @@
   [contenteditable="true"]:hover{ outline:1px dashed var(--gold); cursor:text; }
   [contenteditable="true"]:focus{ outline:1.5px dashed var(--saffron); background:rgba(242,140,40,.06); }
   .edit-badge{
+    display:none;
     position:fixed; bottom:18px; right:18px; z-index:999;
     background:var(--maroon); color:var(--white); font-size:12px;
     padding:9px 16px; border-radius:30px; box-shadow:0 6px 18px rgba(0,0,0,.25);
@@ -259,7 +260,7 @@
 <div class="view-panel active" id="view-website">
 
   <nav class="navbar">
-    <div class="logo" contenteditable="true">ANGEETHI<span>.</span></div>
+    <div class="logo" contenteditable="false" data-editable="1">ANGEETHI<span>.</span></div>
     <ul class="nav-links">
       <li><a href="#home">Home</a></li>
       <li><a href="#menu">Menu</a></li>
@@ -277,9 +278,9 @@
     <div class="hero">
       <div class="hero-bg"></div>
       <div class="hero-content">
-        <p class="hero-eyebrow" contenteditable="true">Fine Indian Dining Since 1998</p>
-        <h1 contenteditable="true">Angeethi</h1>
-        <p class="tagline" contenteditable="true">Where fire, spice and heritage meet on one plate — an ode to the tandoor, plated for the modern table.</p>
+        <p class="hero-eyebrow" contenteditable="false" data-editable="1">Fine Indian Dining Since 1998</p>
+        <h1 contenteditable="false" data-editable="1">Angeethi</h1>
+        <p class="tagline" contenteditable="false" data-editable="1">Where fire, spice and heritage meet on one plate — an ode to the tandoor, plated for the modern table.</p>
         <div class="hero-buttons">
           <a class="btn btn-fill" href="#menu">View Menu</a>
           <a class="btn btn-outline" onclick="switchView('order')" href="javascript:void(0)">Order Now</a>
@@ -292,23 +293,23 @@
       <div class="info-item">
         <div class="icon">⏱</div>
         <h4>Opening Hours</h4>
-        <p contenteditable="true">12:00 PM – 3:30 PM<br>7:00 PM – 11:30 PM</p>
+        <p contenteditable="false" data-editable="1">12:00 PM – 3:30 PM<br>7:00 PM – 11:30 PM</p>
       </div>
       <div class="info-item">
         <div class="icon">📍</div>
         <h4>Location</h4>
-        <p contenteditable="true">12 Residency Road, Bengaluru</p>
+        <p contenteditable="false" data-editable="1">12 Residency Road, Bengaluru</p>
         <a class="link-btn" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
       </div>
       <div class="info-item">
         <div class="icon">📞</div>
         <h4>Reservations</h4>
-        <p><a href="tel:+919876543210" contenteditable="true">+91 98765 43210</a></p>
+        <p><a href="tel:+919876543210" contenteditable="false" data-editable="1">+91 98765 43210</a></p>
       </div>
       <div class="info-item">
         <div class="icon">🍽</div>
         <h4>Closed On</h4>
-        <p contenteditable="true">Open all week</p>
+        <p contenteditable="false" data-editable="1">Open all week</p>
       </div>
     </div>
   </section>
@@ -319,13 +320,13 @@
       <img src="https://images.unsplash.com/photo-1600891964092-4316c288032e?q=80&w=1000&auto=format&fit=crop" alt="Chef plating a signature dish">
       <div class="about-text">
         <p class="eyebrow" style="justify-content:flex-start;">Our Story</p>
-        <h2 contenteditable="true">A hearth, not just a kitchen</h2>
-        <p contenteditable="true">Angeethi began as a single charcoal hearth in a family courtyard — the word itself means the warm iron pot that keeps a home fed through winter. Three generations later, that same fire still anchors every dish that leaves our kitchen.</p>
-        <p contenteditable="true">Every recipe is slow, deliberate, and built on spice blends ground fresh each morning. Nothing here is rushed — not the marinade, not the service, not the evening.</p>
+        <h2 contenteditable="false" data-editable="1">A hearth, not just a kitchen</h2>
+        <p contenteditable="false" data-editable="1">Angeethi began as a single charcoal hearth in a family courtyard — the word itself means the warm iron pot that keeps a home fed through winter. Three generations later, that same fire still anchors every dish that leaves our kitchen.</p>
+        <p contenteditable="false" data-editable="1">Every recipe is slow, deliberate, and built on spice blends ground fresh each morning. Nothing here is rushed — not the marinade, not the service, not the evening.</p>
         <div class="about-stats">
-          <div><h3 contenteditable="true">26</h3><span>Years of Craft</span></div>
-          <div><h3 contenteditable="true">40+</h3><span>Signature Dishes</span></div>
-          <div><h3 contenteditable="true">4.8★</h3><span>Guest Rating</span></div>
+          <div><h3 contenteditable="false" data-editable="1">26</h3><span>Years of Craft</span></div>
+          <div><h3 contenteditable="false" data-editable="1">40+</h3><span>Signature Dishes</span></div>
+          <div><h3 contenteditable="false" data-editable="1">4.8★</h3><span>Guest Rating</span></div>
         </div>
       </div>
     </div>
@@ -336,7 +337,7 @@
     <div class="section-inner">
       <div class="center-head">
         <p class="eyebrow">The Table</p>
-        <h2 contenteditable="true">Signature Dishes</h2>
+        <h2 contenteditable="false" data-editable="1">Signature Dishes</h2>
       </div>
       <div class="menu-grid">
         <div class="menu-card">
@@ -344,9 +345,9 @@
             <span class="tag">Bestseller</span>
           </div>
           <div class="body">
-            <h3 contenteditable="true">Angeethi Tandoori Raan</h3>
-            <p contenteditable="true">Slow-marinated leg of lamb, 12-hour charcoal roast, saffron jus.</p>
-            <div class="price-row"><span>Half / Full</span><span class="price" contenteditable="true">₹950 / ₹1,650</span></div>
+            <h3 contenteditable="false" data-editable="1">Angeethi Tandoori Raan</h3>
+            <p contenteditable="false" data-editable="1">Slow-marinated leg of lamb, 12-hour charcoal roast, saffron jus.</p>
+            <div class="price-row"><span>Half / Full</span><span class="price" contenteditable="false" data-editable="1">₹950 / ₹1,650</span></div>
           </div>
         </div>
         <div class="menu-card">
@@ -354,9 +355,9 @@
             <span class="tag">Chef's Pick</span>
           </div>
           <div class="body">
-            <h3 contenteditable="true">Dum Gosht Biryani</h3>
-            <p contenteditable="true">Aged basmati, hand-pounded spice, sealed and slow-cooked on dum.</p>
-            <div class="price-row"><span>Serves 1</span><span class="price" contenteditable="true">₹620</span></div>
+            <h3 contenteditable="false" data-editable="1">Dum Gosht Biryani</h3>
+            <p contenteditable="false" data-editable="1">Aged basmati, hand-pounded spice, sealed and slow-cooked on dum.</p>
+            <div class="price-row"><span>Serves 1</span><span class="price" contenteditable="false" data-editable="1">₹620</span></div>
           </div>
         </div>
         <div class="menu-card">
@@ -364,9 +365,9 @@
             <span class="tag">Vegetarian</span>
           </div>
           <div class="body">
-            <h3 contenteditable="true">Paneer Angara</h3>
-            <p contenteditable="true">Charcoal-smoked cottage cheese, Kashmiri chilli, mustard tempering.</p>
-            <div class="price-row"><span>Full</span><span class="price" contenteditable="true">₹480</span></div>
+            <h3 contenteditable="false" data-editable="1">Paneer Angara</h3>
+            <p contenteditable="false" data-editable="1">Charcoal-smoked cottage cheese, Kashmiri chilli, mustard tempering.</p>
+            <div class="price-row"><span>Full</span><span class="price" contenteditable="false" data-editable="1">₹480</span></div>
           </div>
         </div>
       </div>
@@ -380,12 +381,12 @@
       <div class="contact-wrap">
         <div class="contact-info">
           <p class="eyebrow" style="justify-content:flex-start;">Visit Us</p>
-          <h2 contenteditable="true">Reserve Your Table</h2>
-          <p contenteditable="true">Walk-ins welcome, though the courtyard tables go quickly on weekends. Call ahead or order in for the same fire, delivered.</p>
-          <div class="contact-row"><span class="k">Address</span><span contenteditable="true">12 Residency Road, Bengaluru, Karnataka 560025</span></div>
-          <div class="contact-row"><span class="k">Phone</span><span contenteditable="true">+91 98765 43210</span></div>
-          <div class="contact-row"><span class="k">WhatsApp</span><span contenteditable="true">+91 98765 43211</span></div>
-          <div class="contact-row"><span class="k">Email</span><span contenteditable="true">reservations@angeethi.in</span></div>
+          <h2 contenteditable="false" data-editable="1">Reserve Your Table</h2>
+          <p contenteditable="false" data-editable="1">Walk-ins welcome, though the courtyard tables go quickly on weekends. Call ahead or order in for the same fire, delivered.</p>
+          <div class="contact-row"><span class="k">Address</span><span contenteditable="false" data-editable="1">12 Residency Road, Bengaluru, Karnataka 560025</span></div>
+          <div class="contact-row"><span class="k">Phone</span><span contenteditable="false" data-editable="1">+91 98765 43210</span></div>
+          <div class="contact-row"><span class="k">WhatsApp</span><span contenteditable="false" data-editable="1">+91 98765 43211</span></div>
+          <div class="contact-row"><span class="k">Email</span><span contenteditable="false" data-editable="1">reservations@angeethi.in</span></div>
           <a class="btn btn-fill" style="margin-top:10px;" target="_blank" href="https://www.google.com/maps/dir/?api=1&destination=12.9716,77.5946">Get Directions →</a>
         </div>
         <div class="map-embed">
@@ -399,8 +400,8 @@
   <footer>
     <div class="footer-grid">
       <div>
-        <div class="footer-logo" contenteditable="true">Angeethi</div>
-        <p contenteditable="true">Fine Indian dining rooted in fire, spice and three generations of craft.</p>
+        <div class="footer-logo" contenteditable="false" data-editable="1">Angeethi</div>
+        <p contenteditable="false" data-editable="1">Fine Indian dining rooted in fire, spice and three generations of craft.</p>
         <div class="socials">
           <a href="#" aria-label="Instagram">IG</a>
           <a href="#" aria-label="Facebook">FB</a>
@@ -414,15 +415,15 @@
       </div>
       <div>
         <h4>Hours</h4>
-        <p contenteditable="true">Lunch 12:00 – 3:30 PM</p>
-        <p contenteditable="true">Dinner 7:00 – 11:30 PM</p>
-        <p contenteditable="true">Open all week</p>
+        <p contenteditable="false" data-editable="1">Lunch 12:00 – 3:30 PM</p>
+        <p contenteditable="false" data-editable="1">Dinner 7:00 – 11:30 PM</p>
+        <p contenteditable="false" data-editable="1">Open all week</p>
       </div>
       <div>
         <h4>Contact</h4>
-        <p contenteditable="true">+91 98765 43210</p>
-        <p contenteditable="true">reservations@angeethi.in</p>
-        <p contenteditable="true">12 Residency Road, Bengaluru</p>
+        <p contenteditable="false" data-editable="1">+91 98765 43210</p>
+        <p contenteditable="false" data-editable="1">reservations@angeethi.in</p>
+        <p contenteditable="false" data-editable="1">12 Residency Road, Bengaluru</p>
       </div>
     </div>
     <div class="footer-bottom">© 2026 Angeethi Restaurant. All rights reserved. · Crafted with fire and patience.</div>
@@ -658,7 +659,7 @@
     switchView('website');
   };
 
-  function updateAuthUI(role, email){
+  function updateAuthUI(role, email, canEdit){
     const btnDash = document.getElementById('btnDashboard');
     const btnRev = document.getElementById('btnRevenue');
     const btnLogin = document.getElementById('btnLogin');
@@ -678,7 +679,7 @@
       btnLogin.style.display = 'none';
       btnLogout.style.display = 'inline-block';
       badge.style.display = 'inline-block';
-      badge.textContent = role.toUpperCase();
+      badge.textContent = role.toUpperCase() + (canEdit ? ' · EDIT ON' : '');
       loginForm.style.display = 'none';
       loggedInBox.style.display = 'block';
       document.getElementById('loggedInEmail').textContent = email;
@@ -690,15 +691,22 @@
       loginForm.style.display = 'block';
       loggedInBox.style.display = 'none';
     }
+
+    setEditMode(!!canEdit);
   }
 
   onAuthStateChanged(auth, async (user) => {
     if(user){
       try{
         const snap = await getDoc(doc(db, 'users', user.uid));
-        const role = snap.exists() ? (snap.data().role || null) : null;
+        const data = snap.exists() ? snap.data() : null;
+        const role = data ? (data.role || null) : null;
+        // Super Admin can always edit. Owner/Manager/Staff can edit ONLY if
+        // Super Admin has explicitly granted it via the "canEdit" field on
+        // their user document in Firestore (users/{uid}/canEdit = true).
+        const canEdit = role === 'superadmin' || data?.canEdit === true;
         window.currentRole = role;
-        updateAuthUI(role, user.email);
+        updateAuthUI(role, user.email, canEdit);
         if(!role){
           const msg = document.getElementById('loginMsg');
           msg.style.display='block'; msg.style.color='#C9412D';
@@ -706,11 +714,11 @@
         }
       }catch(e){
         window.currentRole = null;
-        updateAuthUI(null, null);
+        updateAuthUI(null, null, false);
       }
     } else {
       window.currentRole = null;
-      updateAuthUI(null, null);
+      updateAuthUI(null, null, false);
       if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active')){
         switchView('website');
       }
@@ -719,8 +727,14 @@
 
   /* ---------- 1. LIVE-EDITABLE SITE CONTENT ---------- */
   const CONTENT_DOC = doc(db, "content", "site");
-  const editableEls = Array.from(document.querySelectorAll('[contenteditable="true"]'));
+  const editableEls = Array.from(document.querySelectorAll('[data-editable="1"]'));
   editableEls.forEach((el, i) => { el.dataset.ceKey = 'field_' + i; });
+
+  function setEditMode(enabled){
+    editableEls.forEach(el => el.setAttribute('contenteditable', enabled ? 'true' : 'false'));
+    document.querySelector('.edit-badge').style.display = enabled ? 'block' : 'none';
+  }
+  setEditMode(false); // locked by default — only Super Admin unlocks this
 
   async function loadContent(){
     try{
