@@ -251,6 +251,7 @@
   <button data-view="order">Place Order</button>
   <button data-view="dashboard" id="btnDashboard" style="display:none;">Order Dashboard</button>
   <button data-view="revenue" id="btnRevenue" style="display:none;">Revenue</button>
+  <button data-view="admin" id="btnAdmin" style="display:none;">Super Admin</button>
   <button data-view="login" id="btnLogin">Staff Login</button>
   <button id="btnLogout" onclick="doLogout()" style="display:none; background:transparent; border:1px solid rgba(255,255,255,.25); color:#FFD79A;">Logout</button>
   <span id="authBadge" style="display:none; align-self:center; margin-left:6px; font-size:12px; color:#FFD79A; padding:8px 4px;"></span>
@@ -517,6 +518,53 @@
   </div>
 </div>
 
+<!-- ================= SUPER ADMIN: MANAGE OWNERS ================= -->
+<div class="view-panel" id="view-admin">
+  <div class="dash-wrap">
+    <div class="dash-head"><h2>Super Admin — Manage Accounts</h2></div>
+
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:36px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
+      <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
+        <strong>Step 1</strong> — In Firebase Console → Authentication → Add user (set their email + password), then copy their <strong>UID</strong>.<br>
+        <strong>Step 2</strong> — Paste that UID below with their name, role and permissions, then Save. They can then sign in from "Staff Login".<br>
+        <em>Note: for security, actual login accounts must be created in the Firebase Console — this panel controls their role and permissions only.</em>
+      </p>
+      <div class="field"><label>User ID (UID from Firebase Authentication)</label><input type="text" id="admUid" placeholder="e.g. 4ZQvTGcm7SRnYPA1SVl0QzVN7ST2"></div>
+      <div class="field"><label>Name</label><input type="text" id="admName" placeholder="e.g. Rohan Mehta"></div>
+      <div class="field"><label>Email</label><input type="email" id="admEmail" placeholder="owner@angeethi.in"></div>
+      <div class="field">
+        <label>Role</label>
+        <select id="admRole">
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Permissions</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permEdit"> Edit website content (every section)</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permDash" checked> View Order Dashboard</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permStatus" checked> Update order status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permRev"> View Revenue panel</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="permPay"> Update payment status</label>
+        </div>
+      </div>
+      <div id="admMsg" style="display:none; margin:14px 0; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="saveOwner()">Save Account</button>
+      <button class="btn btn-maroon-outline" onclick="clearOwnerForm()" style="margin-left:10px;">Clear Form</button>
+    </div>
+
+    <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:22px;">All Accounts</h3>
+    <table class="order-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Edit</th><th>Dashboard</th><th>Status</th><th>Revenue</th><th>Payments</th></tr></thead>
+      <tbody id="usersTableBody">
+        <tr><td colspan="8" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <!-- ================= STAFF LOGIN ================= -->
 <div class="view-panel" id="view-login">
   <div class="order-wrap" style="max-width:440px;">
@@ -548,16 +596,16 @@
 </div>
 
 <script>
-  const ROLE_ACCESS = {
-    superadmin: ['website','order','dashboard','revenue','login'],
-    owner:      ['website','order','dashboard','revenue','login'],
-    manager:    ['website','order','dashboard','login'],
-    staff:      ['website','order','dashboard','login']
-  };
-  window.currentRole = null; // null = guest, not logged in
+  window.currentRole = null;   // null = guest, not logged in
+  window.currentPerms = {};    // { canEdit, viewDashboard, updateOrderStatus, viewRevenue, managePayments }
 
   function allowedViews(){
-    return window.currentRole ? ROLE_ACCESS[window.currentRole] : ['website','order','login'];
+    const v = ['website','order','login'];
+    const p = window.currentPerms || {};
+    if(p.viewDashboard) v.push('dashboard');
+    if(p.viewRevenue) v.push('revenue');
+    if(window.currentRole === 'superadmin') v.push('admin');
+    return v;
   }
 
   function switchView(name){
@@ -659,27 +707,26 @@
     switchView('website');
   };
 
-  function updateAuthUI(role, email, canEdit){
+  function updateAuthUI(role, email, perms){
+    perms = perms || {};
     const btnDash = document.getElementById('btnDashboard');
     const btnRev = document.getElementById('btnRevenue');
+    const btnAdmin = document.getElementById('btnAdmin');
     const btnLogin = document.getElementById('btnLogin');
     const btnLogout = document.getElementById('btnLogout');
     const badge = document.getElementById('authBadge');
     const loginForm = document.getElementById('loginForm');
     const loggedInBox = document.getElementById('loggedInBox');
 
-    const access = role ? (
-      role==='staff' || role==='manager' ? ['website','order','dashboard','login'] : ['website','order','dashboard','revenue','login']
-    ) : ['website','order','login'];
-
-    btnDash.style.display = access.includes('dashboard') ? 'inline-block' : 'none';
-    btnRev.style.display = access.includes('revenue') ? 'inline-block' : 'none';
+    btnDash.style.display = perms.viewDashboard ? 'inline-block' : 'none';
+    btnRev.style.display = perms.viewRevenue ? 'inline-block' : 'none';
+    btnAdmin.style.display = role === 'superadmin' ? 'inline-block' : 'none';
 
     if(role){
       btnLogin.style.display = 'none';
       btnLogout.style.display = 'inline-block';
       badge.style.display = 'inline-block';
-      badge.textContent = role.toUpperCase() + (canEdit ? ' · EDIT ON' : '');
+      badge.textContent = role.toUpperCase() + (perms.canEdit ? ' · EDIT ON' : '');
       loginForm.style.display = 'none';
       loggedInBox.style.display = 'block';
       document.getElementById('loggedInEmail').textContent = email;
@@ -692,7 +739,19 @@
       loggedInBox.style.display = 'none';
     }
 
-    setEditMode(!!canEdit);
+    setEditMode(!!perms.canEdit);
+  }
+
+  function effectivePermissions(role, data){
+    const p = (data && data.permissions) || {};
+    const isSuper = role === 'superadmin';
+    return {
+      canEdit:          isSuper || p.canEdit === true || data?.canEdit === true, // canEdit kept for backward compatibility
+      viewDashboard:    isSuper || p.viewDashboard === true,
+      updateOrderStatus:isSuper || p.updateOrderStatus === true,
+      viewRevenue:      isSuper || p.viewRevenue === true,
+      managePayments:   isSuper || p.managePayments === true
+    };
   }
 
   onAuthStateChanged(auth, async (user) => {
@@ -701,12 +760,11 @@
         const snap = await getDoc(doc(db, 'users', user.uid));
         const data = snap.exists() ? snap.data() : null;
         const role = data ? (data.role || null) : null;
-        // Super Admin can always edit. Owner/Manager/Staff can edit ONLY if
-        // Super Admin has explicitly granted it via the "canEdit" field on
-        // their user document in Firestore (users/{uid}/canEdit = true).
-        const canEdit = role === 'superadmin' || data?.canEdit === true;
+        const perms = effectivePermissions(role, data);
         window.currentRole = role;
-        updateAuthUI(role, user.email, canEdit);
+        window.currentPerms = perms;
+        updateAuthUI(role, user.email, perms);
+        startOrdersListener();
         if(!role){
           const msg = document.getElementById('loginMsg');
           msg.style.display='block'; msg.style.color='#C9412D';
@@ -714,16 +772,102 @@
         }
       }catch(e){
         window.currentRole = null;
-        updateAuthUI(null, null, false);
+        window.currentPerms = {};
+        updateAuthUI(null, null, {});
       }
     } else {
       window.currentRole = null;
-      updateAuthUI(null, null, false);
-      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active')){
+      window.currentPerms = {};
+      updateAuthUI(null, null, {});
+      startOrdersListener();
+      if(document.getElementById('view-dashboard').classList.contains('active') || document.getElementById('view-revenue').classList.contains('active') || document.getElementById('view-admin').classList.contains('active')){
         switchView('website');
       }
     }
   });
+
+  /* ---------- SUPER ADMIN: manage owner/manager/staff accounts ---------- */
+  const usersCol = collection(db, "users");
+
+  window.clearOwnerForm = function(){
+    document.getElementById('admUid').value = '';
+    document.getElementById('admName').value = '';
+    document.getElementById('admEmail').value = '';
+    document.getElementById('admRole').value = 'owner';
+    document.getElementById('permEdit').checked = false;
+    document.getElementById('permDash').checked = true;
+    document.getElementById('permStatus').checked = true;
+    document.getElementById('permRev').checked = false;
+    document.getElementById('permPay').checked = false;
+    document.getElementById('admMsg').style.display = 'none';
+  };
+
+  window.saveOwner = async function(){
+    const uid = document.getElementById('admUid').value.trim();
+    const name = document.getElementById('admName').value.trim();
+    const email = document.getElementById('admEmail').value.trim();
+    const role = document.getElementById('admRole').value;
+    const msg = document.getElementById('admMsg');
+
+    if(!uid || !name || !email){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'UID, name and email are all required.';
+      return;
+    }
+    const permissions = {
+      canEdit: document.getElementById('permEdit').checked,
+      viewDashboard: document.getElementById('permDash').checked,
+      updateOrderStatus: document.getElementById('permStatus').checked,
+      viewRevenue: document.getElementById('permRev').checked,
+      managePayments: document.getElementById('permPay').checked
+    };
+    try{
+      await setDoc(doc(db, 'users', uid), { name, email, role, permissions }, { merge: true });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Saved — this account can now sign in with these permissions.';
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not save — check Firestore rules (Super Admin needs write access to /users).';
+      console.warn(e);
+    }
+  };
+
+  window.loadOwnerIntoForm = function(uid, data){
+    document.getElementById('admUid').value = uid;
+    document.getElementById('admName').value = data.name || '';
+    document.getElementById('admEmail').value = data.email || '';
+    document.getElementById('admRole').value = data.role || 'owner';
+    const p = data.permissions || {};
+    document.getElementById('permEdit').checked = !!p.canEdit;
+    document.getElementById('permDash').checked = !!p.viewDashboard;
+    document.getElementById('permStatus').checked = !!p.updateOrderStatus;
+    document.getElementById('permRev').checked = !!p.viewRevenue;
+    document.getElementById('permPay').checked = !!p.managePayments;
+    document.getElementById('admMsg').style.display = 'none';
+    window.scrollTo({top:0, behavior:'smooth'});
+  };
+
+  const tick = v => v ? '✓' : '—';
+  onSnapshot(usersCol, snap => {
+    const body = document.getElementById('usersTableBody');
+    if(!body) return; // page hasn't rendered this section (shouldn't happen, safe guard)
+    const rows = snap.docs.map(d => {
+      const u = d.data();
+      const p = u.permissions || {};
+      const isSuper = u.role === 'superadmin';
+      return `<tr style="cursor:pointer" onclick='loadOwnerIntoForm("${d.id}", ${JSON.stringify(u).replace(/'/g,"&#39;")})'>
+        <td>${u.name||'—'}</td>
+        <td>${u.email||'—'}</td>
+        <td>${u.role||'—'}</td>
+        <td>${isSuper ? '✓' : tick(p.canEdit)}</td>
+        <td>${isSuper ? '✓' : tick(p.viewDashboard)}</td>
+        <td>${isSuper ? '✓' : tick(p.updateOrderStatus)}</td>
+        <td>${isSuper ? '✓' : tick(p.viewRevenue)}</td>
+        <td>${isSuper ? '✓' : tick(p.managePayments)}</td>
+      </tr>`;
+    }).join('');
+    body.innerHTML = rows || '<tr><td colspan="8" style="text-align:center;color:#9a8a72;">No accounts yet.</td></tr>';
+  }, err => console.warn('Users listener error (Super Admin needs read access to /users):', err.message));
 
   /* ---------- 1. LIVE-EDITABLE SITE CONTENT ---------- */
   const CONTENT_DOC = doc(db, "content", "site");
@@ -806,17 +950,23 @@
 
   const STATUS_CYCLE = ['pending','preparing','complete'];
   window.cycleOrderStatus = async function(id, current){
+    if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to update order status."); return; }
     const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current)+1) % STATUS_CYCLE.length];
     try{ await updateDoc(doc(db,"orders", id), { status: next }); }catch(e){ console.warn(e); }
   };
   window.cyclePaymentStatus = async function(id, current){
+    if(!window.currentPerms?.managePayments){ alert("You don't have permission to update payment status."); return; }
     const next = current === 'pending' ? 'complete' : 'pending';
     try{ await updateDoc(doc(db,"orders", id), { paymentStatus: next }); }catch(e){ console.warn(e); }
   };
 
   const typeLabel = t => t === 'Home Delivery' ? 'Parcel' : t;
 
-  onSnapshot(query(ordersCol, orderBy('createdAt','desc')), snap => {
+  let unsubscribeOrders = null;
+  window.startOrdersListener = function(){
+    if(unsubscribeOrders) unsubscribeOrders(); // stop any previous (dead) listener first
+
+    unsubscribeOrders = onSnapshot(query(ordersCol, orderBy('createdAt','desc')), snap => {
     const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
     // ---- dashboard stats ----
@@ -862,7 +1012,12 @@
         <td>₹${(o.amount||0).toLocaleString('en-IN')}</td>
         <td><span class="status-pill ${o.paymentStatus==='complete'?'complete':'pending'}" style="cursor:pointer" onclick="cyclePaymentStatus('${o.id}','${o.paymentStatus}')">${o.paymentStatus}</span></td>
       </tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>';
-  }, err => console.warn('Orders listener error (check Firestore rules):', err.message));
+    }, err => console.warn('Orders listener error (check Firestore rules):', err.message));
+  };
+
+  // start once for guests (order placement + public dashboard/revenue reads,
+  // if your rules allow it), and it gets restarted on every login/logout below
+  startOrdersListener();
 </script>
 
 </body>
