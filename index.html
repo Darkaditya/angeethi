@@ -91,7 +91,7 @@
   .btn{
     display:inline-block; padding:12px 26px; border-radius:2px; font-size:13.5px;
     letter-spacing:.08em; text-transform:uppercase; cursor:pointer; border:1px solid transparent;
-    transition:.25s;
+    transition:.25s; background:transparent; font-family:'Jost', sans-serif;
   }
   .btn-fill{ background:var(--saffron); color:var(--maroon-dark); font-weight:600; }
   .btn-fill:hover{ background:#e07d1c; box-shadow:0 8px 20px rgba(242,140,40,.35); }
@@ -156,6 +156,10 @@
   .menu-card:hover{ transform:translateY(-6px); box-shadow:0 24px 40px rgba(139,30,30,.18); }
   .menu-card .img{ height:220px; background-size:cover; background-position:center; position:relative; }
   .menu-card .tag{ position:absolute; top:14px; left:14px; background:var(--saffron); color:var(--maroon-dark); font-size:11px; padding:5px 12px; border-radius:20px; text-transform:uppercase; letter-spacing:.06em; font-weight:600; }
+  .veg-dot{ display:inline-block; width:13px; height:13px; border:2px solid; border-radius:2px; position:relative; vertical-align:middle; margin-right:6px; }
+  .veg-dot::after{ content:''; position:absolute; inset:2px; border-radius:50%; }
+  .veg-dot.veg{ border-color:#2e7d32; } .veg-dot.veg::after{ background:#2e7d32; }
+  .veg-dot.nonveg{ border-color:#C9412D; } .veg-dot.nonveg::after{ background:#C9412D; }
   .menu-card .body{ padding:22px 22px 26px; }
   .menu-card h3{ font-size:20px; margin-bottom:6px; color:var(--maroon); }
   .menu-card p{ font-size:13.5px; color:#5c4d3c; margin-bottom:14px; }
@@ -230,6 +234,38 @@
     align-items:center; gap:10px; cursor:pointer; border:none;
   }
   .cart-fab.show{ display:flex; }
+  .cat-tabs{ display:flex; gap:8px; overflow-x:auto; padding-bottom:10px; margin-bottom:6px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+  .cat-tabs::-webkit-scrollbar{ display:none; }
+  .cat-tab{
+    flex-shrink:0; background:var(--white); border:1px solid #e3d3b8; color:#5c4d3c;
+    padding:8px 16px; border-radius:20px; font-size:12.5px; cursor:pointer; white-space:nowrap;
+    font-family:'Jost'; -webkit-tap-highlight-color:transparent;
+  }
+  .cat-tab.active{ background:var(--maroon); border-color:var(--maroon); color:var(--white); font-weight:600; }
+
+  /* ============ ORDER CONFIRMATION / STATUS TRACKER ============ */
+  .status-step{ flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; font-size:11.5px; color:#9a8a72; position:relative; }
+  .status-step::before{
+    content:''; position:absolute; top:9px; left:-50%; width:100%; height:2px; background:#e3d3b8; z-index:0;
+  }
+  .status-step:first-child::before{ display:none; }
+  .status-dot{ width:20px; height:20px; border-radius:50%; background:#e3d3b8; z-index:1; transition:.3s; }
+  .status-step.done .status-dot{ background:var(--green); }
+  .status-step.done::before{ background:var(--green); }
+  .status-step.current .status-dot{ background:var(--saffron); box-shadow:0 0 0 4px rgba(242,140,40,.25); }
+  .status-step.done, .status-step.current{ color:var(--ink); font-weight:600; }
+  .conf-item-line{ display:flex; justify-content:space-between; font-size:13px; padding:4px 0; color:#5c4d3c; }
+
+  /* ============ KITCHEN DISPLAY SYSTEM ============ */
+  .kds-card{ background:var(--white); border-radius:6px; padding:20px; box-shadow:0 8px 22px rgba(43,33,24,.1); border-top:4px solid var(--saffron); }
+  .kds-card.preparing{ border-top-color:#B4680B; }
+  .kds-card.pending{ border-top-color:#C9412D; }
+  .kds-card .kds-id{ font-family:'Marcellus'; color:var(--maroon); font-size:16px; margin-bottom:2px; }
+  .kds-card .kds-meta{ font-size:11.5px; color:#9a8a72; margin-bottom:12px; }
+  .kds-card .kds-items{ font-size:13px; color:var(--ink); margin-bottom:14px; line-height:1.6; }
+  .kds-card .kds-btn{ width:100%; padding:12px; border:none; border-radius:4px; font-size:13px; font-weight:600; cursor:pointer; text-transform:uppercase; letter-spacing:.04em; }
+  .kds-btn.to-preparing{ background:#B4680B; color:#fff; }
+  .kds-btn.to-complete{ background:var(--green); color:#fff; }
 
   /* ============ DASHBOARD ============ */
   .dash-wrap{ max-width:1180px; margin:0 auto; padding:50px 6%; }
@@ -312,6 +348,7 @@
   <button class="active" data-view="website">Website</button>
   <button data-view="order">Place Order</button>
   <button data-view="dashboard" id="btnDashboard" style="display:none;">Order Dashboard</button>
+  <button data-view="kitchen" id="btnKitchen" style="display:none;">Kitchen</button>
   <button data-view="revenue" id="btnRevenue" style="display:none;">Revenue</button>
   <button data-view="admin" id="btnAdmin" style="display:none;">Super Admin</button>
   <button data-view="login" id="btnLogin">Staff Login</button>
@@ -346,7 +383,7 @@
         <p class="tagline" contenteditable="false" data-editable="1">Where fire, spice and heritage meet on one plate — an ode to the tandoor, plated for the modern table.</p>
         <div class="hero-buttons">
           <a class="btn btn-fill" href="#menu">View Menu</a>
-          <a class="btn btn-outline" onclick="switchView('order')" href="javascript:void(0)">Order Now</a>
+          <button class="btn btn-outline" onclick="switchView('order')">Order Now</button>
         </div>
       </div>
     </div>
@@ -403,36 +440,9 @@
         <h2 contenteditable="false" data-editable="1">Signature Dishes</h2>
       </div>
       <div class="menu-grid" id="publicMenuGrid">
-        <div class="menu-card">
-          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1585937421612-70a008356fbe?q=80&w=800&auto=format&fit=crop');">
-            <span class="tag">Bestseller</span>
-          </div>
-          <div class="body">
-            <h3 contenteditable="false" data-editable="1">Angeethi Tandoori Raan</h3>
-            <p contenteditable="false" data-editable="1">Slow-marinated leg of lamb, 12-hour charcoal roast, saffron jus.</p>
-            <div class="price-row"><span>Half / Full</span><span class="price" contenteditable="false" data-editable="1">₹950 / ₹1,650</span></div>
-          </div>
-        </div>
-        <div class="menu-card">
-          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1567188040759-fb8a883dc6d3?q=80&w=800&auto=format&fit=crop');">
-            <span class="tag">Chef's Pick</span>
-          </div>
-          <div class="body">
-            <h3 contenteditable="false" data-editable="1">Dum Gosht Biryani</h3>
-            <p contenteditable="false" data-editable="1">Aged basmati, hand-pounded spice, sealed and slow-cooked on dum.</p>
-            <div class="price-row"><span>Serves 1</span><span class="price" contenteditable="false" data-editable="1">₹620</span></div>
-          </div>
-        </div>
-        <div class="menu-card">
-          <div class="img" style="background-image:url('https://images.unsplash.com/photo-1601050690597-df0568f70950?q=80&w=800&auto=format&fit=crop');">
-            <span class="tag">Vegetarian</span>
-          </div>
-          <div class="body">
-            <h3 contenteditable="false" data-editable="1">Paneer Angara</h3>
-            <p contenteditable="false" data-editable="1">Charcoal-smoked cottage cheese, Kashmiri chilli, mustard tempering.</p>
-            <div class="price-row"><span>Full</span><span class="price" contenteditable="false" data-editable="1">₹480</span></div>
-          </div>
-        </div>
+        <p style="grid-column:1/-1; text-align:center; color:#9a8a72; font-size:14px; padding:30px 0;">
+          Our menu is being prepared — check back soon, or ask a staff member for today's specials.
+        </p>
       </div>
       <div class="menu-cta"><a class="btn btn-maroon-outline" href="#contact">See Full Menu</a></div>
     </div>
@@ -522,6 +532,7 @@
     </div>
     <div class="field">
       <label>Select Items</label>
+      <div class="cat-tabs" id="orderCatTabs"></div>
       <div id="orderMenuPicker" style="border:1px solid #e3d3b8; border-radius:3px; padding:14px; max-height:320px; overflow-y:auto; background:var(--cream);">
         <p style="font-size:13px; color:#9a8a72; text-align:center;">Menu items will appear here once the restaurant adds them.</p>
       </div>
@@ -536,6 +547,15 @@
       <label>Special Instructions (optional)</label>
       <input type="text" id="ordNotes" placeholder="e.g. Less spicy, no onions">
     </div>
+    <div class="field">
+      <label>Payment Mode</label>
+      <div class="order-type-row" id="paymentModeRow">
+        <div class="order-type selected" data-pm="UPI" onclick="selectPaymentMode(this)">UPI</div>
+        <div class="order-type" data-pm="Cash" onclick="selectPaymentMode(this)">Cash</div>
+        <div class="order-type" data-pm="Card" onclick="selectPaymentMode(this)">Card</div>
+      </div>
+      <p style="font-size:11.5px; color:#9a8a72; margin-top:8px;">Online UPI/Card gateway confirmation happens at the counter for now — pay staff directly when your order is served.</p>
+    </div>
     <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 4px; border-top:1px dashed #e3d3b8; margin-bottom:20px;">
       <span style="font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--maroon); font-weight:600;">Total</span>
       <span id="orderTotalDisplay" style="font-family:'Marcellus'; font-size:22px; color:var(--maroon);">₹0</span>
@@ -544,6 +564,35 @@
     <div class="order-submit">
       <button class="btn btn-fill" style="width:100%;" id="ordSubmitBtn" onclick="submitOrder()">Place Order</button>
     </div>
+  </div>
+</div>
+
+<!-- ================= ORDER CONFIRMATION (live status) ================= -->
+<div class="view-panel" id="view-confirmation">
+  <div class="order-wrap" style="text-align:center;">
+    <div style="font-size:46px; margin-bottom:6px;">✅</div>
+    <h2>Order Placed!</h2>
+    <p class="sub">Show this Order ID at the counter if needed.</p>
+    <div style="background:var(--cream-alt); border-radius:6px; padding:20px; margin-bottom:26px;">
+      <div style="font-family:'Marcellus'; font-size:22px; color:var(--maroon);" id="confOrderId">—</div>
+      <div style="font-size:12px; color:#7a6a55; margin-top:4px;" id="confOrderTime">—</div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; margin-bottom:30px;" id="statusTracker">
+      <div class="status-step" data-step="pending"><div class="status-dot"></div><span>Pending</span></div>
+      <div class="status-step" data-step="preparing"><div class="status-dot"></div><span>Cooking</span></div>
+      <div class="status-step" data-step="complete"><div class="status-dot"></div><span>Served</span></div>
+    </div>
+
+    <div style="text-align:left; background:var(--white); border:1px solid #e3d3b8; border-radius:6px; padding:20px; margin-bottom:26px;">
+      <div style="font-size:12px; text-transform:uppercase; letter-spacing:.08em; color:var(--maroon); font-weight:600; margin-bottom:12px;">Receipt</div>
+      <div id="confItemsList"></div>
+      <div style="display:flex; justify-content:space-between; padding-top:12px; margin-top:8px; border-top:1px dashed #e3d3b8; font-weight:600; color:var(--maroon);">
+        <span>Total</span><span id="confTotal">₹0</span>
+      </div>
+    </div>
+
+    <button class="btn btn-maroon-outline" style="width:100%;" onclick="switchView('website')">Back to Home</button>
   </div>
 </div>
 
@@ -594,6 +643,19 @@
         <tr><td colspan="5" style="text-align:center;color:#9a8a72;">No orders yet.</td></tr>
       </tbody>
     </table>
+  </div>
+</div>
+
+<!-- ================= KITCHEN DISPLAY SYSTEM ================= -->
+<div class="view-panel" id="view-kitchen">
+  <div class="dash-wrap">
+    <div class="dash-head">
+      <h2>Kitchen Display</h2>
+      <button class="btn btn-maroon-outline btn-small" onclick="toggleKitchenSound()" id="kdsSoundBtn">🔔 Sound: On</button>
+    </div>
+    <div id="kdsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:18px;">
+      <p style="grid-column:1/-1; text-align:center; color:#9a8a72;">No active orders right now.</p>
+    </div>
   </div>
 </div>
 
@@ -648,11 +710,47 @@
 
     <!-- STAFF & OWNER ACCOUNTS -->
     <h3 style="font-family:'Marcellus'; color:var(--maroon); margin-bottom:16px; font-size:20px;">Staff & Owner Accounts</h3>
+
+    <!-- Easy way: invite code -->
     <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
       <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
-        <strong>Step 1</strong> — In Firebase Console → Authentication → Add user (set their email + password), then copy their <strong>UID</strong>.<br>
-        <strong>Step 2</strong> — Paste that UID below with their name, role and permissions, then Save. They can then sign in from "Staff Login".<br>
-        <em>Note: for security, actual login accounts must be created in the Firebase Console — this panel controls their role and permissions only.</em>
+        <strong>Easiest way to add staff</strong> — generate a one-time invite code below, and share it with them.
+        They sign up themselves from "Staff Login → New staff? Sign up with an invite code" — no need to touch Firebase Console or copy any UID.
+      </p>
+      <div class="field">
+        <label>Role for this invite</label>
+        <select id="invRole">
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="staff" selected>Staff</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Permissions this invite grants</label>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:14px;">
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermEdit"> Edit website content</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermDash" checked> View Order Dashboard / Kitchen</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermStatus" checked> Update order status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermRev"> View Revenue panel</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermPay"> Update payment status</label>
+          <label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="invPermMenu"> Edit menu</label>
+        </div>
+      </div>
+      <div id="inviteMsg" style="display:none; margin:14px 0; font-size:13px;"></div>
+      <button class="btn btn-fill" onclick="createInvite()">Generate Invite Code</button>
+
+      <table class="order-table" style="margin-top:24px;">
+        <thead><tr><th>Code</th><th>Role</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="invitesTableBody">
+          <tr><td colspan="4" style="text-align:center;color:#9a8a72;">Loading...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Manual fallback: paste an existing Firebase Auth UID -->
+    <div style="background:var(--white); border-radius:6px; padding:26px; margin-bottom:24px; box-shadow:0 8px 22px rgba(43,33,24,.08);">
+      <p style="font-size:13px; color:#7a6a55; margin-bottom:18px; line-height:1.7;">
+        <strong>Advanced / manual way</strong> — if you already created their login in Firebase Console → Authentication, paste their UID here instead.
       </p>
       <div class="field"><label>User ID (UID from Firebase Authentication)</label><input type="text" id="admUid" placeholder="e.g. 4ZQvTGcm7SRnYPA1SVl0QzVN7ST2"></div>
       <div class="field"><label>Name</label><input type="text" id="admName" placeholder="e.g. Rohan Mehta"></div>
@@ -775,6 +873,9 @@
       <div class="order-submit">
         <button class="btn btn-fill" style="width:100%;" id="loginBtn" onclick="doLogin()">Sign In</button>
       </div>
+      <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
+        New staff? <a href="#" onclick="switchView('signup'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign up with an invite code</a>
+      </p>
     </div>
 
     <div id="loggedInBox" style="display:none; text-align:center;">
@@ -786,14 +887,35 @@
   </div>
 </div>
 
+<!-- ================= STAFF SIGNUP (via invite code) ================= -->
+<div class="view-panel" id="view-signup">
+  <div class="order-wrap" style="max-width:440px;">
+    <h2>Staff Sign Up</h2>
+    <p class="sub">Enter the invite code your manager shared with you.</p>
+
+    <div class="field"><label>Invite Code</label><input type="text" id="suCode" placeholder="e.g. A1B2C3" style="text-transform:uppercase;"></div>
+    <div class="field"><label>Your Name</label><input type="text" id="suName" placeholder="e.g. Priya Sharma"></div>
+    <div class="field"><label>Email</label><input type="email" id="suEmail" placeholder="you@example.com"></div>
+    <div class="field"><label>Create Password</label><input type="password" id="suPassword" placeholder="At least 6 characters"></div>
+
+    <div id="suMsg" style="display:none; margin-bottom:16px; font-size:13px; text-align:center;"></div>
+    <div class="order-submit">
+      <button class="btn btn-fill" style="width:100%;" id="suBtn" onclick="doStaffSignup()">Create Account</button>
+    </div>
+    <p style="text-align:center; font-size:12.5px; margin-top:20px; color:#7a6a55;">
+      Already have an account? <a href="#" onclick="switchView('login'); return false;" style="color:var(--maroon); text-decoration:underline;">Sign in</a>
+    </p>
+  </div>
+</div>
+
 <script>
   window.currentRole = null;   // null = guest, not logged in
   window.currentPerms = {};    // { canEdit, viewDashboard, updateOrderStatus, viewRevenue, managePayments }
 
   function allowedViews(){
-    const v = ['website','order','login'];
+    const v = ['website','order','login','confirmation','signup'];
     const p = window.currentPerms || {};
-    if(p.viewDashboard) v.push('dashboard');
+    if(p.viewDashboard) v.push('dashboard','kitchen');
     if(p.viewRevenue) v.push('revenue');
     if(window.currentRole === 'superadmin') v.push('admin');
     return v;
@@ -856,7 +978,7 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
   import {
-    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+    getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import {
     getFirestore, doc, getDoc, setDoc, collection, addDoc, deleteDoc,
@@ -908,6 +1030,7 @@
   function updateAuthUI(role, email, perms){
     perms = perms || {};
     const btnDash = document.getElementById('btnDashboard');
+    const btnKitchen = document.getElementById('btnKitchen');
     const btnRev = document.getElementById('btnRevenue');
     const btnAdmin = document.getElementById('btnAdmin');
     const btnLogin = document.getElementById('btnLogin');
@@ -917,6 +1040,7 @@
     const loggedInBox = document.getElementById('loggedInBox');
 
     btnDash.style.display = perms.viewDashboard ? 'inline-block' : 'none';
+    btnKitchen.style.display = perms.viewDashboard ? 'inline-block' : 'none';
     btnRev.style.display = perms.viewRevenue ? 'inline-block' : 'none';
     btnAdmin.style.display = role === 'superadmin' ? 'inline-block' : 'none';
 
@@ -987,6 +1111,90 @@
 
   /* ---------- SUPER ADMIN: manage owner/manager/staff accounts ---------- */
   const usersCol = collection(db, "users");
+  const invitesCol = collection(db, "invites");
+
+  window.createInvite = async function(){
+    const msg = document.getElementById('inviteMsg');
+    const role = document.getElementById('invRole').value;
+    const permissions = {
+      canEdit: document.getElementById('invPermEdit').checked,
+      viewDashboard: document.getElementById('invPermDash').checked,
+      updateOrderStatus: document.getElementById('invPermStatus').checked,
+      viewRevenue: document.getElementById('invPermRev').checked,
+      managePayments: document.getElementById('invPermPay').checked,
+      editMenu: document.getElementById('invPermMenu').checked
+    };
+    const code = Array.from({length:6}, () => '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'[Math.floor(Math.random()*32)]).join('');
+    try{
+      await setDoc(doc(db,'invites', code), { role, permissions, used:false, createdAt: serverTimestamp() });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.innerHTML = `Invite created — share this code: <strong style="font-size:16px; letter-spacing:.1em;">${code}</strong>`;
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Could not create invite — check Firestore rules for /invites.';
+      console.warn(e);
+    }
+  };
+
+  window.revokeInvite = async function(code){
+    if(!confirm('Revoke this invite code?')) return;
+    try{ await deleteDoc(doc(db,'invites', code)); }catch(e){ console.warn(e); }
+  };
+
+  onSnapshot(invitesCol, snap => {
+    const body = document.getElementById('invitesTableBody');
+    if(!body) return;
+    const rows = snap.docs.map(d => {
+      const inv = d.data();
+      return `<tr>
+        <td style="font-family:'Marcellus'; letter-spacing:.06em;">${d.id}</td>
+        <td>${inv.role}</td>
+        <td>${inv.used ? '✓ Used' : 'Active'}</td>
+        <td>${inv.used ? '—' : `<button class="btn btn-small" style="background:#C9412D;color:#fff;" onclick="revokeInvite('${d.id}')">Revoke</button>`}</td>
+      </tr>`;
+    }).join('');
+    body.innerHTML = rows || '<tr><td colspan="4" style="text-align:center;color:#9a8a72;">No invites yet — generate one above.</td></tr>';
+  }, err => console.warn('Invites listener error (check Firestore rules for /invites):', err.message));
+
+  window.doStaffSignup = async function(){
+    const code = document.getElementById('suCode').value.trim().toUpperCase();
+    const name = document.getElementById('suName').value.trim();
+    const email = document.getElementById('suEmail').value.trim();
+    const password = document.getElementById('suPassword').value;
+    const msg = document.getElementById('suMsg');
+    const btn = document.getElementById('suBtn');
+
+    if(!code || !name || !email || !password){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = 'Please fill in every field.';
+      return;
+    }
+    btn.textContent = 'Creating account...';
+    try{
+      const inviteSnap = await getDoc(doc(db,'invites', code));
+      if(!inviteSnap.exists() || inviteSnap.data().used){
+        msg.style.display='block'; msg.style.color='#C9412D';
+        msg.textContent = 'Invalid or already-used invite code.';
+        btn.textContent = 'Create Account';
+        return;
+      }
+      const invite = inviteSnap.data();
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      await setDoc(doc(db,'users', cred.user.uid), {
+        name, email, role: invite.role, permissions: invite.permissions
+      });
+      await updateDoc(doc(db,'invites', code), { used:true, usedBy: cred.user.uid });
+      msg.style.display='block'; msg.style.color='var(--green)';
+      msg.textContent = 'Account created! Signing you in...';
+      // onAuthStateChanged fires automatically and takes it from here
+    }catch(e){
+      msg.style.display='block'; msg.style.color='#C9412D';
+      msg.textContent = e.code === 'auth/email-already-in-use'
+        ? 'That email is already registered — try signing in instead.'
+        : (e.code === 'auth/weak-password' ? 'Password should be at least 6 characters.' : 'Could not create account: ' + e.message);
+      btn.textContent = 'Create Account';
+    }
+  };
 
   window.clearOwnerForm = function(){
     document.getElementById('admUid').value = '';
@@ -1251,7 +1459,7 @@
             ${it.bestseller ? '<span class="tag">Bestseller</span>' : (it.veg ? '<span class="tag">Vegetarian</span>' : '')}
           </div>
           <div class="body">
-            <h3>${it.name}</h3>
+            <h3><span class="veg-dot ${it.veg?'veg':'nonveg'}" title="${it.veg?'Vegetarian':'Non-Vegetarian'}"></span>${it.name}</h3>
             <p>${it.shortDesc||''}</p>
             <div class="price-row"><span>${it.pricingType==='halfFull'?'Half / Full':it.pricingType==='multiple'?'Sizes':''}</span><span class="price">${formatMenuPrice(it)}</span></div>
           </div>
@@ -1345,31 +1553,56 @@
     if(!el) return;
     const lines = [];
     items.forEach(it => {
+      const cat = it.category || 'Other';
       if(it.pricingType === 'halfFull'){
-        lines.push({ key: it.id+'_half', label: `${it.name} (${it.halfName||'Half'})`, price: it.halfPrice||0 });
-        lines.push({ key: it.id+'_full', label: `${it.name} (${it.fullName||'Full'})`, price: it.fullPrice||0 });
+        lines.push({ key: it.id+'_half', label: `${it.name} (${it.halfName||'Half'})`, price: it.halfPrice||0, veg: it.veg, category: cat });
+        lines.push({ key: it.id+'_full', label: `${it.name} (${it.fullName||'Full'})`, price: it.fullPrice||0, veg: it.veg, category: cat });
       } else if(it.pricingType === 'multiple' && Array.isArray(it.sizes)){
-        it.sizes.forEach(s => lines.push({ key: it.id+'_'+s.name, label: `${it.name} (${s.name})`, price: s.price||0 }));
+        it.sizes.forEach(s => lines.push({ key: it.id+'_'+s.name, label: `${it.name} (${s.name})`, price: s.price||0, veg: it.veg, category: cat }));
       } else {
-        lines.push({ key: it.id, label: it.name, price: it.price||0 });
+        lines.push({ key: it.id, label: it.name, price: it.price||0, veg: it.veg, category: cat });
       }
     });
     window.lastPickLines = lines;
-    el.innerHTML = lines.length ? lines.map(l => {
-      const safeLabel = l.label.replace(/'/g,"&#39;");
-      const qty = window.orderCart[l.key] ? window.orderCart[l.key].qty : 0;
-      return `
-      <div class="pick-row">
-        <div class="pick-info"><div class="name">${l.label}</div><div class="price">₹${l.price}</div></div>
-        <div class="stepper">
-          <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},-1)">−</button>
-          <span class="qty-display" data-key="${l.key}">${qty}</span>
-          <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},1)">+</button>
-        </div>
-      </div>`;
-    }).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">Menu items will appear here once the restaurant adds them.</p>';
+
+    // category filter tabs (horizontally swipeable on mobile)
+    const cats = ['All', ...new Set(lines.map(l=>l.category))];
+    const tabsEl = document.getElementById('orderCatTabs');
+    if(tabsEl){
+      tabsEl.innerHTML = cats.map((c,i) => `<button type="button" class="cat-tab ${i===0?'active':''}" data-cat="${c}" onclick="filterOrderPicker('${c.replace(/'/g,"&#39;")}', this)">${c}</button>`).join('');
+    }
+
+    function renderLines(filterCat){
+      const filtered = (!filterCat || filterCat==='All') ? lines : lines.filter(l=>l.category===filterCat);
+      el.innerHTML = filtered.length ? filtered.map(l => {
+        const safeLabel = l.label.replace(/'/g,"&#39;");
+        const qty = window.orderCart[l.key] ? window.orderCart[l.key].qty : 0;
+        return `
+        <div class="pick-row">
+          <div class="pick-info"><div class="name"><span class="veg-dot ${l.veg?'veg':'nonveg'}"></span>${l.label}</div><div class="price">₹${l.price}</div></div>
+          <div class="stepper">
+            <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},-1)">−</button>
+            <span class="qty-display" data-key="${l.key}">${qty}</span>
+            <button type="button" onclick="setQty('${l.key}','${safeLabel}',${l.price},1)">+</button>
+          </div>
+        </div>`;
+      }).join('') : '<p style="font-size:13px; color:#9a8a72; text-align:center;">Menu items will appear here once the restaurant adds them.</p>';
+    }
+    window.filterOrderPicker = function(cat, btn){
+      document.querySelectorAll('.cat-tab').forEach(b=>b.classList.remove('active'));
+      if(btn) btn.classList.add('active');
+      renderLines(cat);
+    };
+    renderLines('All');
     renderCartSummary();
     updateOrderTotal();
+  };
+
+  window.selectedPaymentMode = 'UPI';
+  window.selectPaymentMode = function(el){
+    document.querySelectorAll('#paymentModeRow .order-type').forEach(b=>b.classList.remove('selected'));
+    el.classList.add('selected');
+    window.selectedPaymentMode = el.dataset.pm;
   };
 
   window.submitOrder = async function(){
@@ -1398,26 +1631,24 @@
                        + '-' + pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds())
                        + '-' + Math.floor(100 + Math.random()*900); // e.g. ANG-20260813-143205-482
     try{
-      await addDoc(ordersCol, {
+      const newOrderRef = await addDoc(ordersCol, {
         orderNumber, name, mobile, notes, items,
         orderType: selectedOrderType,
         table: selectedOrderType === 'Dine-In' ? selectedTable : '—',
         amount,
         status: 'pending',
         paymentStatus: 'pending',
-        paymentMethod: 'UPI',
+        paymentMethod: window.selectedPaymentMode || 'UPI',
         createdAt: serverTimestamp()
       });
-      msg.style.display='block';
-      msg.style.color = 'var(--green)';
-      msg.textContent = 'Order placed! Our kitchen has been notified.';
       document.getElementById('ordName').value='';
       document.getElementById('ordMobile').value='';
       document.getElementById('ordNotes').value='';
       window.orderCart = {};
       renderOrderPicker(window.lastMenuItems || []);
       btn.textContent = 'Place Order';
-      setTimeout(()=>switchView('website'), 1200);
+      msg.style.display='none';
+      openOrderConfirmation(newOrderRef.id, orderNumber, items, amount, now);
     }catch(e){
       msg.style.display='block';
       msg.style.color = '#C9412D';
@@ -1427,7 +1658,28 @@
     }
   };
 
-  const STATUS_CYCLE = ['pending','preparing','complete'];
+  let unsubscribeConfirmation = null;
+  function openOrderConfirmation(orderId, orderNumber, items, amount, placedAt){
+    switchView('confirmation');
+    document.getElementById('confOrderId').textContent = orderNumber;
+    document.getElementById('confOrderTime').textContent = placedAt.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('confItemsList').innerHTML = items.map(i =>
+      `<div class="conf-item-line"><span>${i.qty} × ${i.name}</span><span>₹${i.lineTotal.toLocaleString('en-IN')}</span></div>`
+    ).join('');
+    document.getElementById('confTotal').textContent = '₹'+amount.toLocaleString('en-IN');
+
+    if(unsubscribeConfirmation) unsubscribeConfirmation();
+    unsubscribeConfirmation = onSnapshot(doc(db,'orders', orderId), snap => {
+      const status = snap.exists() ? (snap.data().status || 'pending') : 'pending';
+      const order = ['pending','preparing','complete'];
+      const currentIdx = order.indexOf(status);
+      document.querySelectorAll('#statusTracker .status-step').forEach(step => {
+        const idx = order.indexOf(step.dataset.step);
+        step.classList.toggle('done', idx < currentIdx);
+        step.classList.toggle('current', idx === currentIdx);
+      });
+    });
+  }
   window.cycleOrderStatus = async function(id, current){
     if(!window.currentPerms?.updateOrderStatus){ alert("You don't have permission to update order status."); return; }
     const next = STATUS_CYCLE[(STATUS_CYCLE.indexOf(current)+1) % STATUS_CYCLE.length];
@@ -1452,12 +1704,71 @@
   };
 
   let unsubscribeOrders = null;
+  let kdsSoundOn = true;
+  let kdsFirstLoad = true;
+  window.toggleKitchenSound = function(){
+    kdsSoundOn = !kdsSoundOn;
+    document.getElementById('kdsSoundBtn').textContent = kdsSoundOn ? '🔔 Sound: On' : '🔕 Sound: Off';
+  };
+  function playBeep(){
+    if(!kdsSoundOn) return;
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine'; osc.frequency.value = 880;
+      gain.gain.setValueAtTime(0.001, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.3, ctx.currentTime + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.start(); osc.stop(ctx.currentTime + 0.4);
+      setTimeout(()=>{ // second beep for emphasis
+        const ctx2 = new (window.AudioContext || window.webkitAudioContext)();
+        const o2 = ctx2.createOscillator(); const g2 = ctx2.createGain();
+        o2.type='sine'; o2.frequency.value=1100;
+        g2.gain.setValueAtTime(0.001, ctx2.currentTime);
+        g2.gain.exponentialRampToValueAtTime(0.3, ctx2.currentTime+0.02);
+        g2.gain.exponentialRampToValueAtTime(0.001, ctx2.currentTime+0.3);
+        o2.connect(g2); g2.connect(ctx2.destination);
+        o2.start(); o2.stop(ctx2.currentTime+0.35);
+      }, 250);
+    }catch(e){ /* audio blocked until user interacts with the page — harmless */ }
+  }
+
   window.startOrdersListener = function(){
     if(unsubscribeOrders) unsubscribeOrders(); // stop any previous (dead) listener first
 
     unsubscribeOrders = onSnapshot(query(ordersCol, orderBy('createdAt','desc')), snap => {
     const allOrders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     window.lastAllOrders = allOrders;
+
+    // ---- beep on newly-arrived pending orders (skip the very first snapshot on page load) ----
+    if(!kdsFirstLoad){
+      snap.docChanges().forEach(change => {
+        if(change.type === 'added' && change.doc.data().status === 'pending') playBeep();
+      });
+    }
+    kdsFirstLoad = false;
+
+    // ---- Kitchen Display System ----
+    const kdsGrid = document.getElementById('kdsGrid');
+    if(kdsGrid){
+      const active = allOrders.filter(o => o.status !== 'complete').sort((a,b)=>{
+        // pending first, then preparing; oldest first within each group
+        if(a.status !== b.status) return a.status === 'pending' ? -1 : 1;
+        return 0;
+      });
+      kdsGrid.innerHTML = active.length ? active.map(o => `
+        <div class="kds-card ${o.status}">
+          <div class="kds-id">${fmtOrderId(o)}</div>
+          <div class="kds-meta">${o.orderType}${o.table && o.table!=='—' ? ' · '+o.table : ''} · ${fmtDateTime(o)}</div>
+          <div class="kds-items">${(o.items||[]).map(i=>`${i.qty}× ${i.name}`).join('<br>') || '—'}</div>
+          ${o.notes ? `<div style="font-size:12px; color:#C9412D; margin-bottom:10px;">Note: ${o.notes}</div>` : ''}
+          ${o.status==='pending'
+            ? `<button class="kds-btn to-preparing" onclick="cycleOrderStatus('${o.id}','pending')">Start Cooking</button>`
+            : `<button class="kds-btn to-complete" onclick="cycleOrderStatus('${o.id}','preparing')">Mark Ready / Served</button>`}
+        </div>`).join('') : '<p style="grid-column:1/-1; text-align:center; color:#9a8a72;">No active orders right now.</p>';
+    }
 
     const startOfToday0 = new Date(); startOfToday0.setHours(0,0,0,0);
     const todaysOrders = allOrders.filter(o => o.createdAt && o.createdAt.toDate && o.createdAt.toDate() >= startOfToday0);
